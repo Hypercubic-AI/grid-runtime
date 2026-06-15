@@ -1,6 +1,7 @@
 import type { Frame } from '@/lib/types';
 import { sx, sy } from '@/lib/render';
 
+// Draw the traveled path as a single polyline (reads as a path, not dust).
 export function Trail({
   frames,
   index,
@@ -10,11 +11,10 @@ export function Trail({
   index: number;
   worldHeight: number;
 }) {
-  return (
-    <>
-      {frames.slice(0, index + 1).map((f, i) => (
-        <circle key={i} className="trail" cx={sx(f.cell[0])} cy={sy(worldHeight, f.cell[1])} r={2.5} />
-      ))}
-    </>
-  );
+  const points = frames
+    .slice(0, index + 1)
+    .map((f) => `${sx(f.cell[0])},${sy(worldHeight, f.cell[1])}`)
+    .join(' ');
+  if (!points) return null;
+  return <polyline className="trail" points={points} />;
 }

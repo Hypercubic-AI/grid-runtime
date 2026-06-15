@@ -64,7 +64,7 @@ describe('executor', () => {
     expect(r.outcome).toBe('arrived');
   });
 
-  it('guards against an over-large REPEAT expansion', () => {
+  it('guards against an over-large REPEAT with a non-empty body', () => {
     const r = execute(
       W,
       { cell: [0, 0], facing: 'E' },
@@ -72,5 +72,29 @@ describe('executor', () => {
     );
     expect(r.outcome).toBe('crashed');
     expect(r.final.reason).toMatch(/too large/);
+  });
+
+  it('guards against a huge REPEAT with an EMPTY body without hanging', () => {
+    // Regression: an empty body never grows the output list, so a guard that only
+    // checks emitted-instruction count would spin forever. This must return fast.
+    const r = execute(W, { cell: [0, 0], facing: 'E' }, dirs({ op: 'REPEAT', count: 1e9, body: [] }));
+    expect(r.outcome).toBe('crashed');
+    expect(r.final.reason).toMatch(/too large/);
+  });
+
+  it('guards against deeply-nested REPEAT without overflowing the stack', () => {
+    let nested: Directions['instructions'] = [{ op: 'MOVE', n: 1 }];
+    for (let i = 0; i < 5000; i++) nested = [{ op: 'REPEAT', count: 1, body: nested }];
+    const r = execute(W, { cell: [0, 0], facing: 'E' }, dirs(...nested));
+    expect(r.outcome).toBe('crashed');
+    expect(r.final.reason).toMatch(/nested too deeply/);
+  });
+
+  it('fails loudly on an unknown opcode instead of silently skipping it', () => {
+    const r = execute(W, { cell: [0, 0], facing: 'E' }, {
+      instructions: [{ op: 'TELEPORT' } as unknown as Directions['instructions'][number]],
+    });
+    expect(r.outcome).toBe('crashed');
+    expect(r.final.reason).toMatch(/unknown instruction/);
   });
 });

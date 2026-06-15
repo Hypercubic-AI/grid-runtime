@@ -3,9 +3,9 @@
   --bg: #0b0e14;
   --panel: #111722;
   --line: #1c2433;
-  --block: #161d2b;
-  --road: #2b3340;
-  --node: #46516a;
+  --block: #10151f; /* buildings (darker than the canvas) */
+  --road: #3a465c; /* roads sit clearly above the blocks */
+  --node: #5b6a86; /* intersections read as deliberate dots */
   --robot: #ffd23f;
   --robot-ring: #ffe699;
   --hazard: #e0533f;
@@ -20,7 +20,6 @@
   --r: 10px;
   --gap: 14px;
   --pad: 18px;
-  --move-ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -39,7 +38,8 @@ body {
   gap: 28px;
   align-items: flex-start;
   padding: 40px;
-  max-width: 1100px;
+  width: fit-content;
+  max-width: 100%;
   margin: 0 auto;
 }
 .wordmark {
@@ -58,7 +58,8 @@ body {
   border: 1px solid var(--line);
   border-radius: var(--r);
   padding: var(--pad);
-  min-width: 240px;
+  width: 240px;
+  flex: none;
 }
 .btn-row {
   display: flex;
@@ -94,7 +95,7 @@ button.active {
   color: var(--pass);
 }
 .status.crashed {
-  color: var(--hazard);
+  color: var(--fail);
 }
 .verdict {
   border-radius: 6px;
@@ -125,6 +126,8 @@ svg.city {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r);
+  max-width: 100%;
+  height: auto;
 }
 .block {
   fill: var(--block);
@@ -138,13 +141,17 @@ svg.city {
 }
 .wall {
   fill: var(--hazard);
-  fill-opacity: 0.15;
+  fill-opacity: 0.18;
   stroke: var(--hazard);
-  stroke-width: 1.25;
+  stroke-width: 1.5;
 }
 .trail {
-  fill: var(--robot);
-  opacity: 0.18;
+  fill: none;
+  stroke: var(--robot);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.3;
 }
 .robot-body {
   fill: var(--robot);
@@ -155,7 +162,9 @@ svg.city {
   fill: var(--bg);
 }
 .robot {
-  transition: transform 140ms var(--move-ease);
+  /* Match the playback frame step (~71ms) so the robot never lags behind its
+     logical cell, and so the pulse/shake fire once it has settled. */
+  transition: transform 70ms linear;
 }
 .robot.arrived {
   animation: pulse 520ms ease-out;
@@ -187,5 +196,22 @@ svg.city {
   }
   80% {
     translate: 2px 0;
+  }
+}
+
+@media (max-width: 1080px) {
+  .app {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .robot {
+    transition: none;
+  }
+  .robot.arrived,
+  .robot.crashed {
+    animation: none;
   }
 }

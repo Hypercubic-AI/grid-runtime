@@ -24,7 +24,7 @@ export function Controls({
 
   return (
     <aside className="panel">
-      <p className="wordmark">Runtime</p>
+      <p className="wordmark">Controls</p>
       <div className="btn-row">
         <button className={player.playing ? 'active' : ''} onClick={player.playing ? player.pause : player.play}>
           {player.playing ? 'Pause' : 'Play'}

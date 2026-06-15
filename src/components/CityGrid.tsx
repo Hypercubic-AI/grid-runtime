@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { World } from '@/lib/types';
-import { CELL, ROAD_W, sx, sy, multiples } from '@/lib/render';
+import { CELL, ROAD_W, NODE_R, sx, sy, multiples } from '@/lib/render';
 
 export function CityGrid({ world, children }: { world: World; children?: ReactNode }) {
   const w = world.width * CELL;
@@ -9,8 +9,8 @@ export function CityGrid({ world, children }: { world: World; children?: ReactNo
   const streets = multiples(world.height, world.block);
 
   return (
-    <svg className="city" width={w} height={h}>
-      {/* city blocks (faint fills between roads) */}
+    <svg className="city" width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
+      {/* city blocks (filled, so the canvas reads as buildings separated by roads) */}
       {streets.slice(0, -1).map((y0) =>
         avenues.slice(0, -1).map((x0) => (
           <rect
@@ -42,18 +42,18 @@ export function CityGrid({ world, children }: { world: World; children?: ReactNo
       {/* intersection nodes */}
       {avenues.map((x) =>
         streets.map((y) => (
-          <circle key={`i${x}-${y}`} className="node" cx={sx(x)} cy={sy(world.height, y)} r={CELL * 0.16} />
+          <circle key={`i${x}-${y}`} className="node" cx={sx(x)} cy={sy(world.height, y)} r={NODE_R} />
         )),
       )}
-      {/* construction */}
+      {/* construction (inset slightly so each cell reads as a discrete obstacle) */}
       {world.walls.map(([x, y], i) => (
         <rect
           key={`w${i}`}
           className="wall"
-          x={sx(x) - CELL / 2}
-          y={sy(world.height, y) - CELL / 2}
-          width={CELL}
-          height={CELL}
+          x={sx(x) - CELL / 2 + 1}
+          y={sy(world.height, y) - CELL / 2 + 1}
+          width={CELL - 2}
+          height={CELL - 2}
           rx={2}
         />
       ))}

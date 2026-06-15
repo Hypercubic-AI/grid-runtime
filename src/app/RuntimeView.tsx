@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import type { World, Directions } from '@/lib/types';
 import { execute } from '@/lib/executor';
 import { judge } from '@/lib/verdict';
+import { isTraversable } from '@/lib/world';
 import { useDirectionsPoll } from '@/hooks/useDirectionsPoll';
 import { usePlayer } from '@/hooks/usePlayer';
 import { CityGrid } from '@/components/CityGrid';
@@ -16,7 +17,13 @@ const WORLD = worldData as World;
 
 export default function RuntimeView() {
   const run = useDirectionsPoll(sample as Directions);
-  const start = run.scenario?.start ?? WORLD.start;
+  // Honor a scenario's start only if it is a legal cell on the active world;
+  // otherwise fall back to the world's own start (multi-map is out of scope for v1).
+  const scenarioStart = run.scenario?.start;
+  const start =
+    scenarioStart && isTraversable(WORLD, scenarioStart.cell[0], scenarioStart.cell[1])
+      ? scenarioStart
+      : WORLD.start;
   const result = useMemo(() => execute(WORLD, start, run.directions), [run, start]);
   const verdict = useMemo(() => judge(result, run.scenario?.expected), [result, run]);
   const player = usePlayer(result.frames);

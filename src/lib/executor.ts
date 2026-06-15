@@ -5,18 +5,24 @@ const DELTA: Record<Dir, [number, number]> = { N: [0, 1], E: [1, 0], S: [0, -1],
 const LEFT: Record<Dir, Dir> = { N: 'W', W: 'S', S: 'E', E: 'N' };
 const RIGHT: Record<Dir, Dir> = { N: 'E', E: 'S', S: 'W', W: 'N' };
 
-const MAX_INSTRUCTIONS = 100_000;
+const MAX_WORK = 1_000_000; // total REPEAT-expansion steps before we abort
+const MAX_DEPTH = 256; // maximum REPEAT nesting depth
 
-class ProgramTooLarge extends Error {}
+class ProgramError extends Error {}
 
-// Expand REPEAT into a flat list, capping total size so a giant `count`
-// cannot exhaust memory before execution begins.
-function flatten(instrs: Instruction[], out: Instruction[] = []): Instruction[] {
+// Expand REPEAT into a flat list. Bounds *total work* — every loop step, not just
+// emitted instructions — so an empty/REPEAT-only body with a huge count cannot spin
+// forever; and bounds nesting depth so deep recursion cannot overflow the stack.
+function flatten(instrs: Instruction[], out: Instruction[], depth: number, work: { n: number }): Instruction[] {
+  if (depth > MAX_DEPTH) throw new ProgramError('the directions are nested too deeply');
   for (const ins of instrs) {
-    if (out.length > MAX_INSTRUCTIONS) throw new ProgramTooLarge();
+    if (++work.n > MAX_WORK) throw new ProgramError('the program is too large');
     if (ins.op === 'REPEAT') {
       const count = Math.max(0, Math.floor(ins.count));
-      for (let i = 0; i < count; i++) flatten(ins.body, out);
+      for (let i = 0; i < count; i++) {
+        if (++work.n > MAX_WORK) throw new ProgramError('the program is too large');
+        flatten(ins.body, out, depth + 1, work);
+      }
     } else {
       out.push(ins);
     }
@@ -37,9 +43,10 @@ export function execute(world: World, start: StartState, directions: Directions)
 
   let flat: Instruction[];
   try {
-    flat = flatten(directions.instructions ?? []);
-  } catch {
-    const f: Frame = { cell: [x, y], facing, status: 'crashed', reason: 'program too large' };
+    flat = flatten(directions.instructions ?? [], [], 0, { n: 0 });
+  } catch (e) {
+    const why = e instanceof ProgramError ? e.message : 'the directions could not be read';
+    const f: Frame = { cell: [x, y], facing, status: 'crashed', reason: `couldn't run — ${why}` };
     frames.push(f);
     return { frames, outcome: 'crashed', final: f };
   }
@@ -68,6 +75,12 @@ export function execute(world: World, start: StartState, directions: Directions)
     } else if (ins.op === 'ARRIVE') {
       frames.push({ cell: [x, y], facing, status: 'arrived' });
       outcome = 'arrived';
+      break;
+    } else {
+      // Unknown / malformed opcode: fail loudly rather than silently no-op.
+      const op = (ins as { op?: unknown }).op;
+      frames.push({ cell: [x, y], facing, status: 'crashed', reason: `couldn't run — unknown instruction "${String(op)}"` });
+      outcome = 'crashed';
       break;
     }
   }
