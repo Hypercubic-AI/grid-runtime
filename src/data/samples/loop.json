@@ -1,0 +1,9 @@
+{
+  "instructions": [
+    { "op": "REPEAT", "count": 4, "body": [
+      { "op": "MOVE", "n": 10 },
+      { "op": "TURN", "dir": "LEFT" }
+    ]},
+    { "op": "ARRIVE" }
+  ]
+}
