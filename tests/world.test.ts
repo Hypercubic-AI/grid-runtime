@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { inBounds, isRoad, isBlocked, isTraversable } from '@/lib/world';
+import { inBounds, isRoad, isBlocked, isTraversable, oneWayBlocks } from '@/lib/world';
 import type { World } from '@/lib/types';
 
 const W: World = {
@@ -36,5 +36,21 @@ describe('world', () => {
     expect(isTraversable(W, 5, 10)).toBe(false);
     expect(isTraversable(W, 3, 3)).toBe(false);
     expect(isTraversable(W, 30, 10)).toBe(false);
+  });
+});
+
+describe('oneWayBlocks', () => {
+  const OW: World = { ...W, oneways: [{ cell: [10, 10], allow: 'N' }] };
+
+  it('blocks only the direction opposite to the allowed one', () => {
+    expect(oneWayBlocks(OW, 10, 10, 'S')).toBe(true); // opposite of N
+    expect(oneWayBlocks(OW, 10, 10, 'N')).toBe(false); // the allowed direction
+    expect(oneWayBlocks(OW, 10, 10, 'E')).toBe(false); // perpendicular (turning onto it)
+    expect(oneWayBlocks(OW, 10, 10, 'W')).toBe(false); // perpendicular
+  });
+
+  it('does not constrain ordinary cells', () => {
+    expect(oneWayBlocks(OW, 0, 0, 'S')).toBe(false);
+    expect(oneWayBlocks(W, 10, 10, 'S')).toBe(false); // world with no one-ways
   });
 });

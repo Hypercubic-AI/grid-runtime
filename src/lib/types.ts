@@ -15,12 +15,20 @@ export interface StartState {
   facing: Dir;
 }
 
+// A one-way road cell: travel through it is permitted only in `allow` (or
+// perpendicular, i.e. turning onto it); travel in the opposite direction is a crash.
+export interface OneWay {
+  cell: [number, number];
+  allow: Dir;
+}
+
 export interface World {
   name: string;
   width: number; // cells along x (0..width-1), x increases East
   height: number; // cells along y (0..height-1), y increases North
   block: number; // road spacing; a cell is road if x%block===0 || y%block===0
   walls: [number, number][];
+  oneways?: OneWay[];
   start: StartState;
 }
 

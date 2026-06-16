@@ -1,5 +1,5 @@
 import type { World, Directions, Instruction, Dir, Frame, RunResult, StartState } from './types';
-import { inBounds, isRoad, isTraversable } from './world';
+import { inBounds, isRoad, isTraversable, oneWayBlocks } from './world';
 
 const DELTA: Record<Dir, [number, number]> = { N: [0, 1], E: [1, 0], S: [0, -1], W: [-1, 0] };
 const LEFT: Record<Dir, Dir> = { N: 'W', W: 'S', S: 'E', E: 'N' };
@@ -65,6 +65,11 @@ export function execute(world: World, start: StartState, directions: Directions)
         const ny = y + dy;
         if (!isTraversable(world, nx, ny)) {
           frames.push({ cell: [x, y], facing, status: 'crashed', reason: reasonFor(world, nx, ny) });
+          outcome = 'crashed';
+          break outer;
+        }
+        if (oneWayBlocks(world, nx, ny, facing)) {
+          frames.push({ cell: [x, y], facing, status: 'crashed', reason: 'drove the wrong way down a one-way street' });
           outcome = 'crashed';
           break outer;
         }

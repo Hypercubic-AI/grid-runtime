@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
-import type { World } from '@/lib/types';
+import type { World, Dir } from '@/lib/types';
 import { CELL, ROAD_W, NODE_R, sx, sy, multiples } from '@/lib/render';
+
+const ARROW_ANGLE: Record<Dir, number> = { N: 0, E: 90, S: 180, W: 270 };
 
 export function CityGrid({ world, children }: { world: World; children?: ReactNode }) {
   const w = world.width * CELL;
@@ -45,6 +47,20 @@ export function CityGrid({ world, children }: { world: World; children?: ReactNo
           <circle key={`i${x}-${y}`} className="node" cx={sx(x)} cy={sy(world.height, y)} r={NODE_R} />
         )),
       )}
+      {/* one-way markers: a small chevron on each one-way cell pointing the allowed way */}
+      {(world.oneways ?? []).map((o, i) => {
+        const cx = sx(o.cell[0]);
+        const cy = sy(world.height, o.cell[1]);
+        const s = CELL * 0.3;
+        return (
+          <polygon
+            key={`o${i}`}
+            className="oneway"
+            points={`${cx},${cy - s} ${cx + s * 0.66},${cy + s * 0.5} ${cx - s * 0.66},${cy + s * 0.5}`}
+            transform={`rotate(${ARROW_ANGLE[o.allow]} ${cx} ${cy})`}
+          />
+        );
+      })}
       {/* construction (inset slightly so each cell reads as a discrete obstacle) */}
       {world.walls.map(([x, y], i) => (
         <rect

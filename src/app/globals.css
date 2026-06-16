@@ -16,6 +16,7 @@
   --fail: #f0816b;
   --fail-bg: #2e1512;
   --accent: #ffd23f;
+  --oneway: #5bbfd0;
   /* scale */
   --r: 10px;
   --gap: 14px;
@@ -138,6 +139,10 @@ svg.city {
 }
 .node {
   fill: var(--node);
+}
+.oneway {
+  fill: var(--oneway);
+  opacity: 0.55;
 }
 .wall {
   fill: var(--hazard);

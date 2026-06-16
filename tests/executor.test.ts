@@ -97,4 +97,19 @@ describe('executor', () => {
     expect(r.outcome).toBe('crashed');
     expect(r.final.reason).toMatch(/unknown instruction/);
   });
+
+  it('crashes when driving the wrong way down a one-way road', () => {
+    const ow: World = { ...W, oneways: [{ cell: [0, 1], allow: 'N' }] };
+    const r = execute(ow, { cell: [0, 2], facing: 'S' }, dirs({ op: 'MOVE', n: 1 }));
+    expect(r.outcome).toBe('crashed');
+    expect(r.final.reason).toMatch(/one-way/);
+    expect(r.final.cell).toEqual([0, 2]); // stopped before entering the one-way cell
+  });
+
+  it('allows driving the correct way down a one-way road', () => {
+    const ow: World = { ...W, oneways: [{ cell: [0, 1], allow: 'N' }] };
+    const r = execute(ow, { cell: [0, 0], facing: 'N' }, dirs({ op: 'MOVE', n: 1 }, { op: 'ARRIVE' }));
+    expect(r.outcome).toBe('arrived');
+    expect(r.final.cell).toEqual([0, 1]);
+  });
 });
