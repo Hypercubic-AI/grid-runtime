@@ -35,7 +35,8 @@ export interface World {
 export interface Scenario {
   world: string;
   start: StartState;
-  expected?: { cell: [number, number]; facing: Dir };
+  expected?: { cell: [number, number]; facing?: Dir };
+  expected_legs?: { cell: [number, number]; facing?: Dir }[];
 }
 
 export type FrameStatus = 'start' | 'moved' | 'turned' | 'arrived' | 'crashed';

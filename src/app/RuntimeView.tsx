@@ -2,7 +2,7 @@
 import { useMemo } from 'react';
 import type { World, Directions } from '@/lib/types';
 import { execute } from '@/lib/executor';
-import { judge } from '@/lib/verdict';
+import { judge, judgeLegs } from '@/lib/verdict';
 import { isTraversable } from '@/lib/world';
 import { useDirectionsPoll } from '@/hooks/useDirectionsPoll';
 import { usePlayer } from '@/hooks/usePlayer';
@@ -25,7 +25,13 @@ export default function RuntimeView() {
       ? scenarioStart
       : WORLD.start;
   const result = useMemo(() => execute(WORLD, start, run.directions), [run, start]);
-  const verdict = useMemo(() => judge(result, run.scenario?.expected), [result, run]);
+  const verdict = useMemo(
+    () =>
+      run.scenario?.expected_legs
+        ? judgeLegs(result, run.scenario.expected_legs)
+        : judge(result, run.scenario?.expected),
+    [result, run],
+  );
   const player = usePlayer(result.frames);
 
   return (
