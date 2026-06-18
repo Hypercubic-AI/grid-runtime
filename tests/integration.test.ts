@@ -4,28 +4,47 @@ import { judge } from '@/lib/verdict';
 import type { World, Directions, Scenario } from '@/lib/types';
 import world from '@/data/worlds/downtown.json';
 import loop from '@/data/samples/loop.json';
-import toThirtieth from '@/data/samples/to-30th.json';
+import straightEast from '@/data/samples/straight-east.json';
+import spiral from '@/data/samples/spiral.json';
+import detour from '@/data/samples/detour.json';
 
 const W = world as World;
+type Bundle = { directions: Directions; scenario: Scenario };
+const passes = (b: Bundle) => {
+  const r = execute(W, b.scenario.start, b.directions);
+  return judge(r, b.scenario.expected)?.pass === true;
+};
 
-describe('integration: sample on default world', () => {
-  it('the loop sample returns the robot to its start, arrived', () => {
+describe('integration: samples on the default world', () => {
+  it('loop returns the robot to its start, arrived', () => {
     const r = execute(W, W.start, loop as Directions);
     expect(r.outcome).toBe('arrived');
     expect(r.final.cell).toEqual(W.start.cell);
     expect(r.final.facing).toBe(W.start.facing);
   });
 
-  it('the to-30th scenario sample arrives at its declared expected target (PASS)', () => {
-    const s = toThirtieth as unknown as { directions: Directions; scenario: Scenario };
-    const r = execute(W, s.scenario.start, s.directions);
-    const v = judge(r, s.scenario.expected);
-    expect(v?.pass).toBe(true);
+  it('straight-east bundle PASSes', () => {
+    expect(passes(straightEast as unknown as Bundle)).toBe(true);
+  });
+
+  it('spiral bundle PASSes (hero demo)', () => {
+    expect(passes(spiral as unknown as Bundle)).toBe(true);
+  });
+
+  it('detour bundle PASSes and routes around the construction', () => {
+    const b = detour as unknown as Bundle;
+    expect(passes(b)).toBe(true);
+    const r = execute(W, b.scenario.start, b.directions);
+    expect(r.outcome).toBe('arrived'); // never crashes into the y=20 closure
+  });
+
+  it('the detour is necessary: a straight run east from its start crashes into the closure', () => {
+    const r = execute(W, { cell: [20, 20], facing: 'E' }, { instructions: [{ op: 'MOVE', n: 20 }, { op: 'ARRIVE' }] });
+    expect(r.outcome).toBe('crashed');
+    expect(r.final.reason).toMatch(/construction/);
   });
 
   it('a crash takes precedence over a matching final cell in the verdict', () => {
-    // Drive straight off the east edge; the final cell equals the last good cell,
-    // but the verdict must report the crash, not a pass.
     const r = execute(W, W.start, { instructions: [{ op: 'MOVE', n: 100 }, { op: 'ARRIVE' }] });
     expect(r.outcome).toBe('crashed');
     const v = judge(r, { cell: r.final.cell, facing: r.final.facing });
