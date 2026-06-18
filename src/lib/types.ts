@@ -1,10 +1,10 @@
 export type Dir = 'N' | 'E' | 'S' | 'W';
 
 export type Instruction =
-  | { op: 'MOVE'; n: number }
-  | { op: 'TURN'; dir: 'LEFT' | 'RIGHT' }
-  | { op: 'REPEAT'; count: number; body: Instruction[] }
-  | { op: 'ARRIVE' };
+  | { op: 'MOVE'; n: number; line?: number }
+  | { op: 'TURN'; dir: 'LEFT' | 'RIGHT'; line?: number }
+  | { op: 'REPEAT'; count: number; body: Instruction[]; line?: number }
+  | { op: 'ARRIVE'; line?: number };
 
 export interface Directions {
   instructions: Instruction[];
@@ -46,10 +46,25 @@ export interface Frame {
   facing: Dir;
   status: FrameStatus;
   reason?: string;
+  line?: number;
 }
 
 export interface RunResult {
   frames: Frame[];
   outcome: 'arrived' | 'crashed' | 'ended';
   final: Frame;
+}
+
+// A parse/validation problem, shaped to map directly onto a CodeMirror lint Diagnostic.
+export interface Diagnostic {
+  from: number; // absolute character offset (start)
+  to: number; // absolute character offset (end)
+  line: number; // 1-based source line
+  message: string;
+  severity: 'error';
+}
+
+export interface ParseResult {
+  instructions: Instruction[];
+  diagnostics: Diagnostic[];
 }
