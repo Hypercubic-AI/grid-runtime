@@ -56,7 +56,7 @@ export function execute(world: World, start: StartState, directions: Directions)
   outer: for (const ins of flat) {
     if (ins.op === 'TURN') {
       facing = ins.dir === 'LEFT' ? LEFT[facing] : RIGHT[facing];
-      frames.push({ cell: [x, y], facing, status: 'turned' });
+      frames.push({ cell: [x, y], facing, status: 'turned', line: ins.line });
     } else if (ins.op === 'MOVE') {
       const [dx, dy] = DELTA[facing];
       const n = Math.max(0, Math.floor(ins.n));
@@ -64,27 +64,27 @@ export function execute(world: World, start: StartState, directions: Directions)
         const nx = x + dx;
         const ny = y + dy;
         if (!isTraversable(world, nx, ny)) {
-          frames.push({ cell: [x, y], facing, status: 'crashed', reason: reasonFor(world, nx, ny) });
+          frames.push({ cell: [x, y], facing, status: 'crashed', reason: reasonFor(world, nx, ny), line: ins.line });
           outcome = 'crashed';
           break outer;
         }
         if (oneWayBlocks(world, nx, ny, facing)) {
-          frames.push({ cell: [x, y], facing, status: 'crashed', reason: 'drove the wrong way down a one-way street' });
+          frames.push({ cell: [x, y], facing, status: 'crashed', reason: 'drove the wrong way down a one-way street', line: ins.line });
           outcome = 'crashed';
           break outer;
         }
         x = nx;
         y = ny;
-        frames.push({ cell: [x, y], facing, status: 'moved' });
+        frames.push({ cell: [x, y], facing, status: 'moved', line: ins.line });
       }
     } else if (ins.op === 'ARRIVE') {
-      frames.push({ cell: [x, y], facing, status: 'arrived' });
+      frames.push({ cell: [x, y], facing, status: 'arrived', line: ins.line });
       outcome = 'arrived';
       break;
     } else {
       // Unknown / malformed opcode: fail loudly rather than silently no-op.
       const op = (ins as { op?: unknown }).op;
-      frames.push({ cell: [x, y], facing, status: 'crashed', reason: `couldn't run — unknown instruction "${String(op)}"` });
+      frames.push({ cell: [x, y], facing, status: 'crashed', reason: `couldn't run — unknown instruction "${String(op)}"`, line: (ins as { line?: number }).line });
       outcome = 'crashed';
       break;
     }

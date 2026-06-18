@@ -113,3 +113,33 @@ describe('executor', () => {
     expect(r.final.cell).toEqual([0, 1]);
   });
 });
+
+describe('executor — source line attribution', () => {
+  it('copies each instruction line onto the frames it emits (start frame has none)', () => {
+    const r = execute(
+      W,
+      { cell: [0, 0], facing: 'E' },
+      { instructions: [
+        { op: 'MOVE', n: 2, line: 1 },
+        { op: 'TURN', dir: 'LEFT', line: 2 },
+        { op: 'ARRIVE', line: 3 },
+      ] },
+    );
+    expect(r.frames.map((f) => [f.status, f.line])).toEqual([
+      ['start', undefined],
+      ['moved', 1],
+      ['moved', 1],
+      ['turned', 2],
+      ['arrived', 3],
+    ]);
+  });
+
+  it('re-uses a REPEAT body line on every iteration', () => {
+    const r = execute(
+      W,
+      { cell: [0, 0], facing: 'E' },
+      { instructions: [{ op: 'REPEAT', count: 2, body: [{ op: 'MOVE', n: 1, line: 5 }], line: 4 }] },
+    );
+    expect(r.frames.filter((f) => f.status === 'moved').map((f) => f.line)).toEqual([5, 5]);
+  });
+});
