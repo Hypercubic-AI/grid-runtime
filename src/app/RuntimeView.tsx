@@ -107,7 +107,6 @@ export default function RuntimeView() {
       setSource('directions.json'); // visible source swap (spec §13.2)
       commit(instrs, watch.scenario ?? null);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watch]);
 
   // keyboard transport — ignored while the editor is focused
