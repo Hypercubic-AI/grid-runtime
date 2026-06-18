@@ -24,7 +24,7 @@ export function judge(
   if (result.outcome !== 'arrived') {
     return { pass: false, reason: 'Never issued ARRIVE' };
   }
-  return { pass: true, reason: 'Arrived at the intended doorstep' };
+  return { pass: true, reason: 'Reached the target' };
 }
 
 // Multi-stop grading: each leg's target cell must be visited in order, and the

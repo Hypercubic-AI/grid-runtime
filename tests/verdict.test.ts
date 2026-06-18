@@ -77,3 +77,12 @@ describe('judgeLegs (multi-stop)', () => {
     expect(judgeLegs(multi(), [{ cell: [40, 30] }, { cell: [20, 30] }])?.pass).toBe(false);
   });
 });
+
+describe('verdict — disguise-safe copy', () => {
+  it('PASS reason is neutral and contains no address-domain words', () => {
+    const v = judge(arrived([42, 30], 'S'), { cell: [42, 30], facing: 'S' });
+    expect(v?.pass).toBe(true);
+    expect(v?.reason).toBe('Reached the target');
+    expect(v?.reason).not.toMatch(/doorstep|address|house/i);
+  });
+});
