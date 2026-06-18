@@ -95,6 +95,15 @@ export default function RuntimeView() {
   const goal = !hasProgram ? null : legs ? legs[legs.length - 1].cell : committed.scenario?.expected?.cell ?? null;
   const waypoints = hasProgram && legs ? legs.slice(0, -1).map((l) => l.cell) : [];
 
+  // Emptying the editor resets the stage to the neutral resting state (spec §7.5):
+  // commit an empty program so the trail/goal clear, the robot returns to start,
+  // and the hint shows. (Typing then leaves the stage at rest until the next Run.)
+  useEffect(() => {
+    if (isEmpty && committed.instructions.length > 0) {
+      setCommitted((c) => ({ instructions: [], scenario: null, runId: c.runId + 1 }));
+    }
+  }, [isEmpty, committed.instructions.length]);
+
   // file-watch: apply only real updates (mtime > 0), into the editor + run
   const watch = useDirectionsPoll({ instructions: committed.instructions });
   const lastMtime = useRef(0);
@@ -228,7 +237,7 @@ export default function RuntimeView() {
             <div className="t">
               <div className="a">{!ok ? `Line ${firstErr.line}: ${firstErr.message}` : isEmpty ? 'Empty program' : 'No errors'}</div>
               <div className="b">
-                {!ok ? 'Fix the error to run' : isEmpty ? 'Write a program or load a sample' : `${committed.instructions.length} instructions ready`}
+                {!ok ? 'Fix the error to run' : isEmpty ? 'Write a program or load a sample' : `${parsed.instructions.length} instructions ready`}
               </div>
             </div>
           </div>
