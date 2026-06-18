@@ -30,6 +30,23 @@ export interface CellRun {
   orient: 'h' | 'v' | 'point';
 }
 
+export const PULL_IN = NODE_R; // inset at any run end abutting an intersection node
+
+const CHEVRON_ANGLE: Record<Dir, number> = { N: 0, E: 90, S: 180, W: 270 };
+
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface Chevron {
+  x: number;
+  y: number;
+  angle: number;
+}
+
 // Group cells into maximal contiguous collinear runs. Inputs (walls / one-way lanes)
 // are collinear by construction; an L-bend would split at the corner.
 export function groupRuns(cells: [number, number][]): CellRun[] {
@@ -61,4 +78,50 @@ export function groupRuns(cells: [number, number][]): CellRun[] {
     runs.push({ cells: runCells, orient });
   }
   return runs;
+}
+
+// One inset hazard rect per wall run, in screen space.
+export function barrierRects(world: World): Rect[] {
+  const atNode = (v: number) => v % world.block === 0;
+  return groupRuns(world.walls).map((run) => {
+    const xs = run.cells.map((c) => c[0]);
+    const ys = run.cells.map((c) => c[1]);
+    const xmin = Math.min(...xs);
+    const xmax = Math.max(...xs);
+    const ymin = Math.min(...ys);
+    const ymax = Math.max(...ys);
+    if (run.orient === 'v') {
+      const x = sx(xmin) - ROAD_W / 2;
+      let top = sy(world.height, ymax) - CELL / 2; // north end → smaller screen y
+      let bot = sy(world.height, ymin) + CELL / 2;
+      if (atNode(ymax)) top += PULL_IN;
+      if (atNode(ymin)) bot -= PULL_IN;
+      return { x, y: top, width: ROAD_W, height: bot - top };
+    }
+    let left = sx(xmin) - CELL / 2;
+    let right = sx(xmax) + CELL / 2;
+    if (atNode(xmin)) left += PULL_IN;
+    if (atNode(xmax)) right -= PULL_IN;
+    return { x: left, y: sy(world.height, ymin) - ROAD_W / 2, width: right - left, height: ROAD_W };
+  });
+}
+
+// Chevrons every `every` cells along each one-way run, from an interior offset, skipping
+// outer-edge cells; angle derived from the run's `allow` direction.
+export function oneWayChevrons(world: World, every = 2): Chevron[] {
+  const ows = world.oneways ?? [];
+  if (!ows.length) return [];
+  const allowOf = new Map(ows.map((o) => [`${o.cell[0]},${o.cell[1]}`, o.allow] as const));
+  const onEdge = (x: number, y: number) => x === 0 || y === 0 || x === world.width - 1 || y === world.height - 1;
+  const out: Chevron[] = [];
+  for (const run of groupRuns(ows.map((o) => o.cell))) {
+    const allow = allowOf.get(`${run.cells[0][0]},${run.cells[0][1]}`) as Dir;
+    const angle = CHEVRON_ANGLE[allow];
+    for (let i = 1; i < run.cells.length; i += every) {
+      const [cx, cy] = run.cells[i];
+      if (onEdge(cx, cy)) continue;
+      out.push({ x: sx(cx), y: sy(world.height, cy), angle });
+    }
+  }
+  return out;
 }

@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { sx, sy, CELL, nearestEquivalentAngle } from '@/lib/render';
 import { groupRuns } from '@/lib/render';
+import { barrierRects, oneWayChevrons, PULL_IN, ROAD_W } from '@/lib/render';
+import type { World } from '@/lib/types';
 
 describe('render coordinates', () => {
   it('sx maps grid x to screen x', () => {
@@ -51,5 +53,41 @@ describe('groupRuns', () => {
     expect(runs).toHaveLength(2);
     expect(runs.find((r) => r.orient === 'point')?.cells).toEqual([[3, 0]]);
     expect(runs.find((r) => r.orient === 'h')?.cells).toEqual([[10, 5], [11, 5]]);
+  });
+});
+
+const W: World = {
+  name: 't', width: 61, height: 41, block: 10,
+  walls: [[35, 20], [36, 20], [37, 20]],
+  oneways: [
+    { cell: [50, 30], allow: 'N' }, { cell: [50, 31], allow: 'N' }, { cell: [50, 32], allow: 'N' },
+    { cell: [50, 33], allow: 'N' }, { cell: [50, 34], allow: 'N' }, { cell: [50, 35], allow: 'N' },
+    { cell: [50, 36], allow: 'N' }, { cell: [50, 37], allow: 'N' }, { cell: [50, 38], allow: 'N' },
+    { cell: [50, 39], allow: 'N' }, { cell: [50, 40], allow: 'N' },
+  ],
+  start: { cell: [10, 30], facing: 'E' },
+};
+
+describe('barrierRects', () => {
+  it('downtown construction: no intersection-abutting end, so no PULL_IN inset', () => {
+    const [r] = barrierRects(W);
+    // horizontal run xmin=35..xmax=37, neither at a multiple of block(10)
+    expect(r.width).toBeCloseTo((37 - 35) * CELL + CELL); // full span, no inset
+    expect(r.height).toBe(ROAD_W);
+  });
+  it('insets an end that abuts an intersection node', () => {
+    const synth: World = { ...W, walls: [[40, 20], [41, 20]] }; // x=40 is a node
+    const [r] = barrierRects(synth);
+    expect(r.width).toBeCloseTo((41 - 40) * CELL + CELL - PULL_IN); // left end pulled in
+  });
+});
+
+describe('oneWayChevrons', () => {
+  it('orients chevrons by allow (N -> angle 0) and skips the outer-edge cell', () => {
+    const cs = oneWayChevrons(W);
+    expect(cs.length).toBeGreaterThanOrEqual(3);
+    expect(cs.every((c) => c.angle === 0)).toBe(true);
+    // none sits on the northern edge cell y=40 (screen y === 0)
+    expect(cs.every((c) => c.y !== 0)).toBe(true);
   });
 });
