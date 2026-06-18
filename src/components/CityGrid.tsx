@@ -4,15 +4,20 @@ import { CELL, ROAD_W, NODE_R, sx, sy, multiples, barrierRects, oneWayChevrons }
 
 export function CityGrid({
   world,
+  start,
   goal,
   waypoints = [],
   children,
 }: {
   world: World;
+  start?: [number, number];
   goal?: [number, number] | null;
   waypoints?: [number, number][];
   children?: ReactNode;
 }) {
+  // The START marker must mark where the robot actually begins — the scenario's
+  // start when one overrides it, else the world default.
+  const startCell = start ?? world.start.cell;
   const netW = (world.width - 1) * CELL; // road network spans avenue 0 .. last avenue
   const netH = (world.height - 1) * CELL; // .. and street 0 .. last street
   const PAD = CELL; // margin so border roads sit inside the rounded card, never clipped
@@ -95,10 +100,10 @@ export function CityGrid({
         </g>
       ))}
 
-      {/* start marker (always) */}
+      {/* start marker — the robot's actual start (scenario start, else world default) */}
       <g>
-        <circle className="start-ring" cx={sx(world.start.cell[0])} cy={sy(world.height, world.start.cell[1])} r={CELL * 0.42} />
-        <text className="marker-label" x={sx(world.start.cell[0])} y={sy(world.height, world.start.cell[1]) + CELL * 1.15}>
+        <circle className="start-ring" cx={sx(startCell[0])} cy={sy(world.height, startCell[1])} r={CELL * 0.42} />
+        <text className="marker-label" x={sx(startCell[0])} y={sy(world.height, startCell[1]) + CELL * 1.15}>
           START
         </text>
       </g>

@@ -171,7 +171,7 @@ export default function RuntimeView() {
             </div>
           </div>
           <div className="stage-card">
-            <CityGrid world={WORLD} goal={goal} waypoints={waypoints}>
+            <CityGrid world={WORLD} start={start.cell} goal={goal} waypoints={waypoints}>
               <Trail frames={result.frames} index={player.index} worldHeight={WORLD.height} />
               <Robot
                 cell={player.frame.cell}
