@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import { EditorState } from '@codemirror/state';
-import { EditorView, keymap, lineNumbers, highlightActiveLine } from '@codemirror/view';
+import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
 import { lintGutter } from '@codemirror/lint';
 import { isaLanguage, isaHighlight, isaLinter, isaTheme, activeLineField, setActiveLine } from '@/lib/isaEditor';
@@ -32,7 +32,6 @@ export function Editor({
       extensions: [
         lineNumbers(),
         history(),
-        highlightActiveLine(),
         isaLanguage,
         isaHighlight,
         isaLinter,
