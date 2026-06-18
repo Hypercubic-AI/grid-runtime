@@ -83,3 +83,29 @@ describe('parseText — error classes', () => {
     expect(d.severity).toBe('error');
   });
 });
+
+import { parseJson } from '@/lib/isa';
+
+describe('parseJson — shared validator for the JSON ingest path', () => {
+  it('accepts a bare instruction list', () => {
+    const r = parseJson({ instructions: [{ op: 'MOVE', n: 3 }, { op: 'ARRIVE' }] });
+    expect(r.diagnostics).toEqual([]);
+    expect(r.instructions).toEqual([{ op: 'MOVE', n: 3 }, { op: 'ARRIVE' }]);
+  });
+  it('accepts a { directions, scenario } bundle (reads only directions)', () => {
+    const r = parseJson({ directions: { instructions: [{ op: 'ARRIVE' }] }, scenario: {} });
+    expect(r.diagnostics).toEqual([]);
+    expect(r.instructions).toEqual([{ op: 'ARRIVE' }]);
+  });
+  it('flags a missing instructions array', () => {
+    expect(parseJson({ foo: 1 }).diagnostics[0].message).toMatch(/instructions/);
+  });
+  it('applies the same integer>=1 rule as the text path', () => {
+    expect(parseJson({ instructions: [{ op: 'MOVE', n: 0 }] }).diagnostics[0].message).toMatch(/operand|≥ 1/);
+    expect(parseJson({ instructions: [{ op: 'REPEAT', count: 2.5, body: [] }] }).diagnostics[0].message).toMatch(/operand/);
+  });
+  it('flags an unknown opcode and a bad turn direction', () => {
+    expect(parseJson({ instructions: [{ op: 'FLY' }] }).diagnostics[0].message).toMatch(/unknown/);
+    expect(parseJson({ instructions: [{ op: 'TURN', dir: 'UP' }] }).diagnostics[0].message).toMatch(/LEFT or RIGHT/);
+  });
+});

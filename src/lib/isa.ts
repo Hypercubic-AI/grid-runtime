@@ -175,3 +175,52 @@ export function textToInstructions(src: string): Instruction[] {
   if (diagnostics.length) throw new Error(diagnostics[0].message);
   return instructions;
 }
+
+// Validate a parsed JSON value into Instruction[], using the SAME numeric rule as text.
+// JSON has no source lines, so diagnostics carry line 1 / offset 0 (the JSON paste path
+// converts to text and re-lints there; this is the gate before that conversion).
+export function parseJson(parsed: unknown): ParseResult {
+  const diagnostics: Diagnostic[] = [];
+  const flag = (message: string) => diagnostics.push({ from: 0, to: 0, line: 1, message, severity: 'error' });
+
+  const root = parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
+  const directions = root && !Array.isArray(root.instructions) && root.directions && typeof root.directions === 'object'
+    ? (root.directions as Record<string, unknown>)
+    : root;
+  const list = directions && Array.isArray(directions.instructions) ? (directions.instructions as unknown[]) : null;
+
+  if (!list) {
+    flag('not a directions object (missing an "instructions" array)');
+    return { instructions: [], diagnostics };
+  }
+
+  const walk = (nodes: unknown[]): Instruction[] => {
+    const out: Instruction[] = [];
+    for (const raw of nodes) {
+      const node = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : null;
+      const op = node?.op;
+      if (op === 'MOVE') {
+        const n = node!.n;
+        if (typeof n !== 'number' || !Number.isInteger(n) || n < 1) flag(`invalid operand for MOVE — count must be an integer ≥ 1`);
+        else out.push({ op: 'MOVE', n });
+      } else if (op === 'TURN') {
+        const dir = node!.dir;
+        if (dir !== 'LEFT' && dir !== 'RIGHT') flag('TURN expects LEFT or RIGHT');
+        else out.push({ op: 'TURN', dir });
+      } else if (op === 'ARRIVE') {
+        out.push({ op: 'ARRIVE' });
+      } else if (op === 'REPEAT') {
+        const count = node!.count;
+        const body = node!.body;
+        if (typeof count !== 'number' || !Number.isInteger(count) || count < 1) flag('invalid operand for REPEAT — count must be an integer ≥ 1');
+        else if (!Array.isArray(body)) flag('REPEAT requires a body array');
+        else out.push({ op: 'REPEAT', count, body: walk(body) });
+      } else {
+        flag(`unknown instruction "${String(op)}"`);
+      }
+    }
+    return out;
+  };
+
+  return { instructions: walk(list), diagnostics };
+}
