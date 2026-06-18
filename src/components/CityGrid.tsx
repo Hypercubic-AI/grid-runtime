@@ -1,23 +1,56 @@
 import type { ReactNode } from 'react';
-import type { World, Dir } from '@/lib/types';
-import { CELL, ROAD_W, NODE_R, sx, sy, multiples } from '@/lib/render';
+import type { World } from '@/lib/types';
+import { CELL, ROAD_W, NODE_R, sx, sy, multiples, barrierRects, oneWayChevrons } from '@/lib/render';
 
-const ARROW_ANGLE: Record<Dir, number> = { N: 0, E: 90, S: 180, W: 270 };
-
-export function CityGrid({ world, children }: { world: World; children?: ReactNode }) {
-  const w = world.width * CELL;
-  const h = world.height * CELL;
+export function CityGrid({
+  world,
+  start,
+  goal,
+  waypoints = [],
+  children,
+}: {
+  world: World;
+  start?: [number, number];
+  goal?: [number, number] | null;
+  waypoints?: [number, number][];
+  children?: ReactNode;
+}) {
+  // The START marker must mark where the robot actually begins — the scenario's
+  // start when one overrides it, else the world default.
+  const startCell = start ?? world.start.cell;
+  const netW = (world.width - 1) * CELL; // road network spans avenue 0 .. last avenue
+  const netH = (world.height - 1) * CELL; // .. and street 0 .. last street
+  const PAD = CELL; // margin so border roads sit inside the rounded card, never clipped
   const avenues = multiples(world.width, world.block);
   const streets = multiples(world.height, world.block);
+  const barriers = barrierRects(world);
+  const chevrons = oneWayChevrons(world);
+  const chev = CELL * 0.34;
+  const goalXY = goal ? ([sx(goal[0]), sy(world.height, goal[1])] as const) : null;
 
   return (
-    <svg className="city" width={w} height={h} viewBox={`0 0 ${w} ${h}`}>
-      {/* city blocks (filled, so the canvas reads as buildings separated by roads) */}
+    <svg className="city" viewBox={`${-PAD} ${-PAD} ${netW + PAD * 2} ${netH + PAD * 2}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="City street map">
+      <defs>
+        <pattern id="hazard" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect width="22" height="22" fill="#1f1812" />
+          <rect width="11" height="22" fill="#f8a23a" />
+        </pattern>
+        <radialGradient id="robotGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stopColor="rgba(245,179,1,.5)" />
+          <stop offset="1" stopColor="rgba(245,179,1,0)" />
+        </radialGradient>
+        <radialGradient id="goalGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0" stopColor="rgba(245,179,1,.3)" />
+          <stop offset="1" stopColor="rgba(245,179,1,0)" />
+        </radialGradient>
+      </defs>
+
+      {/* buildings (fill the blocks between roads) */}
       {streets.slice(0, -1).map((y0) =>
         avenues.slice(0, -1).map((x0) => (
           <rect
             key={`b${x0}-${y0}`}
-            className="block"
+            className="blk"
             x={sx(x0) + ROAD_W / 2}
             y={sy(world.height, y0 + world.block) + ROAD_W / 2}
             width={world.block * CELL - ROAD_W}
@@ -26,53 +59,71 @@ export function CityGrid({ world, children }: { world: World; children?: ReactNo
           />
         )),
       )}
+
       {/* roads */}
       {avenues.map((x) => (
-        <line key={`a${x}`} className="road" x1={sx(x)} y1={0} x2={sx(x)} y2={h} strokeWidth={ROAD_W} />
+        <line key={`a${x}`} className="road" x1={sx(x)} y1={0} x2={sx(x)} y2={netH} strokeWidth={ROAD_W} />
       ))}
       {streets.map((y) => (
-        <line
-          key={`s${y}`}
-          className="road"
-          x1={0}
-          y1={sy(world.height, y)}
-          x2={w}
-          y2={sy(world.height, y)}
-          strokeWidth={ROAD_W}
-        />
+        <line key={`s${y}`} className="road" x1={0} y1={sy(world.height, y)} x2={netW} y2={sy(world.height, y)} strokeWidth={ROAD_W} />
       ))}
+
+      {/* dashed lane centerlines */}
+      {avenues.map((x) => (
+        <line key={`la${x}`} className="lane" x1={sx(x)} y1={0} x2={sx(x)} y2={netH} />
+      ))}
+      {streets.map((y) => (
+        <line key={`ls${y}`} className="lane" x1={0} y1={sy(world.height, y)} x2={netW} y2={sy(world.height, y)} />
+      ))}
+
       {/* intersection nodes */}
       {avenues.map((x) =>
-        streets.map((y) => (
-          <circle key={`i${x}-${y}`} className="node" cx={sx(x)} cy={sy(world.height, y)} r={NODE_R} />
-        )),
+        streets.map((y) => <circle key={`i${x}-${y}`} className="node" cx={sx(x)} cy={sy(world.height, y)} r={NODE_R} />),
       )}
-      {/* one-way markers: a small chevron on each one-way cell pointing the allowed way */}
-      {(world.oneways ?? []).map((o, i) => {
-        const cx = sx(o.cell[0]);
-        const cy = sy(world.height, o.cell[1]);
-        const s = CELL * 0.3;
-        return (
-          <polygon
-            key={`o${i}`}
-            className="oneway"
-            points={`${cx},${cy - s} ${cx + s * 0.66},${cy + s * 0.5} ${cx - s * 0.66},${cy + s * 0.5}`}
-            transform={`rotate(${ARROW_ANGLE[o.allow]} ${cx} ${cy})`}
-          />
-        );
-      })}
-      {/* construction (inset slightly so each cell reads as a discrete obstacle) */}
-      {world.walls.map(([x, y], i) => (
-        <rect
-          key={`w${i}`}
-          className="wall"
-          x={sx(x) - CELL / 2 + 1}
-          y={sy(world.height, y) - CELL / 2 + 1}
-          width={CELL - 2}
-          height={CELL - 2}
-          rx={2}
+
+      {/* one-way chevrons (data-derived placement + orientation) */}
+      {chevrons.map((c, i) => (
+        <polygon
+          key={`o${i}`}
+          className="chevron"
+          points={`${c.x},${c.y - chev} ${c.x + chev * 0.66},${c.y + chev * 0.5} ${c.x - chev * 0.66},${c.y + chev * 0.5}`}
+          transform={`rotate(${c.angle} ${c.x} ${c.y})`}
         />
       ))}
+
+      {/* construction barriers across the road */}
+      {barriers.map((b, i) => (
+        <g key={`w${i}`}>
+          <rect className="barrier" x={b.x} y={b.y} width={b.width} height={b.height} rx={4} />
+          <rect className="barrier-edge" x={b.x} y={b.y} width={b.width} height={b.height} rx={4} />
+          <text className="barrier-label" x={b.x + b.width / 2} y={b.y - 6}>ROAD CLOSED</text>
+        </g>
+      ))}
+
+      {/* start marker — the robot's actual start (scenario start, else world default) */}
+      <g>
+        <circle className="start-ring" cx={sx(startCell[0])} cy={sy(world.height, startCell[1])} r={CELL * 0.42} />
+        <text className="marker-label" x={sx(startCell[0])} y={sy(world.height, startCell[1]) + CELL * 1.15}>
+          START
+        </text>
+      </g>
+
+      {/* intermediate leg waypoints (subdued) */}
+      {waypoints.map((p, i) => (
+        <circle key={`wp${i}`} className="start-ring" cx={sx(p[0])} cy={sy(world.height, p[1])} r={CELL * 0.3} />
+      ))}
+
+      {/* goal marker (only when a scenario is active) */}
+      {goalXY && (
+        <g>
+          <circle cx={goalXY[0]} cy={goalXY[1]} r={CELL * 1.1} fill="url(#goalGlow)" />
+          <circle className="goal-ring" cx={goalXY[0]} cy={goalXY[1]} r={CELL * 0.5} />
+          <circle className="goal-ring" cx={goalXY[0]} cy={goalXY[1]} r={CELL * 0.22} />
+          <text className="marker-label" x={goalXY[0]} y={goalXY[1] - CELL * 0.85}>GOAL</text>
+        </g>
+      )}
+
+      {/* trail + robot on top */}
       {children}
     </svg>
   );

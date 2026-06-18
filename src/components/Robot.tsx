@@ -32,6 +32,7 @@ export function Robot({
         transformOrigin: 'center',
       }}
     >
+      <circle className="robot-glow" r={ROBOT_R * 2.2} fill="url(#robotGlow)" />
       <circle className="robot-body" r={ROBOT_R} />
       <polygon
         className="robot-notch"

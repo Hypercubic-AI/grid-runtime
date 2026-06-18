@@ -1,0 +1,15 @@
+{
+  "directions": {
+    "instructions": [
+      { "op": "REPEAT", "count": 4, "body": [{ "op": "MOVE", "n": 10 }, { "op": "TURN", "dir": "LEFT" }] },
+      { "op": "MOVE", "n": 20 },
+      { "op": "TURN", "dir": "RIGHT" },
+      { "op": "ARRIVE" }
+    ]
+  },
+  "scenario": {
+    "world": "downtown",
+    "start": { "cell": [10, 30], "facing": "E" },
+    "expected": { "cell": [30, 30], "facing": "S" }
+  }
+}

@@ -16,5 +16,10 @@ export function Trail({
     .map((f) => `${sx(f.cell[0])},${sy(worldHeight, f.cell[1])}`)
     .join(' ');
   if (!points) return null;
-  return <polyline className="trail" points={points} />;
+  return (
+    <g>
+      <polyline className="trail-glow" points={points} />
+      <polyline className="trail" points={points} />
+    </g>
+  );
 }
