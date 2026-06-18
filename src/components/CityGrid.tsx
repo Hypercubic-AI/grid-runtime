@@ -13,8 +13,9 @@ export function CityGrid({
   waypoints?: [number, number][];
   children?: ReactNode;
 }) {
-  const w = world.width * CELL;
-  const h = world.height * CELL;
+  const netW = (world.width - 1) * CELL; // road network spans avenue 0 .. last avenue
+  const netH = (world.height - 1) * CELL; // .. and street 0 .. last street
+  const PAD = CELL; // margin so border roads sit inside the rounded card, never clipped
   const avenues = multiples(world.width, world.block);
   const streets = multiples(world.height, world.block);
   const barriers = barrierRects(world);
@@ -23,7 +24,7 @@ export function CityGrid({
   const goalXY = goal ? ([sx(goal[0]), sy(world.height, goal[1])] as const) : null;
 
   return (
-    <svg className="city" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="City street map">
+    <svg className="city" viewBox={`${-PAD} ${-PAD} ${netW + PAD * 2} ${netH + PAD * 2}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="City street map">
       <defs>
         <pattern id="hazard" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect width="22" height="22" fill="#1f1812" />
@@ -56,18 +57,18 @@ export function CityGrid({
 
       {/* roads */}
       {avenues.map((x) => (
-        <line key={`a${x}`} className="road" x1={sx(x)} y1={0} x2={sx(x)} y2={h} strokeWidth={ROAD_W} />
+        <line key={`a${x}`} className="road" x1={sx(x)} y1={0} x2={sx(x)} y2={netH} strokeWidth={ROAD_W} />
       ))}
       {streets.map((y) => (
-        <line key={`s${y}`} className="road" x1={0} y1={sy(world.height, y)} x2={w} y2={sy(world.height, y)} strokeWidth={ROAD_W} />
+        <line key={`s${y}`} className="road" x1={0} y1={sy(world.height, y)} x2={netW} y2={sy(world.height, y)} strokeWidth={ROAD_W} />
       ))}
 
       {/* dashed lane centerlines */}
       {avenues.map((x) => (
-        <line key={`la${x}`} className="lane" x1={sx(x)} y1={0} x2={sx(x)} y2={h} />
+        <line key={`la${x}`} className="lane" x1={sx(x)} y1={0} x2={sx(x)} y2={netH} />
       ))}
       {streets.map((y) => (
-        <line key={`ls${y}`} className="lane" x1={0} y1={sy(world.height, y)} x2={w} y2={sy(world.height, y)} />
+        <line key={`ls${y}`} className="lane" x1={0} y1={sy(world.height, y)} x2={netW} y2={sy(world.height, y)} />
       ))}
 
       {/* intersection nodes */}
