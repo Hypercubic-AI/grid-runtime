@@ -97,12 +97,11 @@ header {
 
 /* MAIN */
 main {
-  flex: 1 1 auto;
-  min-height: 0;
+  flex: 1 0 auto;
   display: grid;
   grid-template-columns: 1fr 418px;
   gap: 24px;
-  padding: 24px 30px 16px;
+  padding: 24px 30px 44px;
 }
 
 /* STAGE */
@@ -139,7 +138,7 @@ main {
 }
 .stage-card {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 440px;
   border: 1px solid var(--border);
   border-radius: 18px;
   background:
@@ -467,7 +466,7 @@ main {
 }
 .code {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 440px;
   border: 1px solid var(--border);
   border-radius: 16px;
   overflow: hidden;
