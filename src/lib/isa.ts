@@ -142,3 +142,36 @@ export function parseText(src: string): ParseResult {
   const instructions = parseBlock(false);
   return { instructions, diagnostics };
 }
+
+// Canonical serializer: emits 2-space-indented ISA text. Does NOT reproduce comments
+// or blank lines (they are not in Instruction[]) — see spec §7.4. Round-trip is semantic.
+export function instructionsToText(instructions: Instruction[], indent = 0): string {
+  const pad = '  '.repeat(indent);
+  const lines: string[] = [];
+  for (const ins of instructions) {
+    switch (ins.op) {
+      case 'MOVE':
+        lines.push(`${pad}MOVE ${ins.n}`);
+        break;
+      case 'TURN':
+        lines.push(`${pad}TURN ${ins.dir}`);
+        break;
+      case 'ARRIVE':
+        lines.push(`${pad}ARRIVE`);
+        break;
+      case 'REPEAT':
+        lines.push(`${pad}REPEAT ${ins.count} {`);
+        if (ins.body.length) lines.push(instructionsToText(ins.body, indent + 1));
+        lines.push(`${pad}}`);
+        break;
+    }
+  }
+  return lines.join('\n');
+}
+
+// Convenience for callers that just want instructions and treat any diagnostic as fatal.
+export function textToInstructions(src: string): Instruction[] {
+  const { instructions, diagnostics } = parseText(src);
+  if (diagnostics.length) throw new Error(diagnostics[0].message);
+  return instructions;
+}
