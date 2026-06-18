@@ -42,7 +42,6 @@ export default function RuntimeView() {
   const [text, setText] = useState(initial.text);
   const [scenario, setScenario] = useState<Scenario | null>(initial.scenario);
   const [sample, setSample] = useState('spiral');
-  const [source, setSource] = useState('spiral'); // visible source label (sample name or 'directions.json')
   const [committed, setCommitted] = useState<Committed>(() => ({
     instructions: parseText(initial.text).instructions,
     scenario: initial.scenario,
@@ -66,7 +65,6 @@ export default function RuntimeView() {
   const loadSample = (name: string) => {
     const e = toEditable(SAMPLES[name]);
     setSample(name);
-    setSource(name);
     setText(e.text);
     setScenario(e.scenario);
     commit(parseText(e.text).instructions, e.scenario);
@@ -113,7 +111,6 @@ export default function RuntimeView() {
       const instrs = watch.directions.instructions as Instruction[];
       setText(instructionsToText(instrs));
       setScenario(watch.scenario ?? null);
-      setSource('directions.json'); // visible source swap (spec §13.2)
       commit(instrs, watch.scenario ?? null);
     }
   }, [watch]);
@@ -169,14 +166,8 @@ export default function RuntimeView() {
       <main>
         <section className="stage">
           <div className="stage-head">
-            <div>
-              <div className="eyebrow">Visualization</div>
-              <div className="stage-title">
-                Run Stage<span className="sub">{source} · live trace</span>
-              </div>
-            </div>
-            <div className="eyebrow tnum">
-              Grid {WORLD.width}×{WORLD.height}
+            <div className="eyebrow tnum" style={{ marginLeft: 'auto' }}>
+              Grid {WORLD.width} × {WORLD.height}
             </div>
           </div>
           <div className="stage-card">

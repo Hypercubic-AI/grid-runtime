@@ -13,7 +13,7 @@ export function Status({ result, verdict }: { result: RunResult; verdict: Verdic
       {verdict ? (
         <span>
           <span className={verdict.pass ? 'pass' : 'fail'}>{verdict.pass ? 'PASS' : 'FAIL'}</span>
-          <span style={{ color: 'var(--muted)' }}> — {verdict.reason}</span>
+          {!verdict.pass && <span style={{ color: 'var(--muted)' }}> — {verdict.reason}</span>}
         </span>
       ) : (
         <span>
