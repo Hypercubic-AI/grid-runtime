@@ -41,7 +41,8 @@ const initial = toEditable(SAMPLES.spiral);
 export default function RuntimeView() {
   const [text, setText] = useState(initial.text);
   const [scenario, setScenario] = useState<Scenario | null>(initial.scenario);
-  const [sample, setSample] = useState('spiral');
+  const [sample, setSample] = useState('spiral'); // selected sample, or '' when a non-sample source is loaded
+  const [fname, setFname] = useState('spiral.grid'); // the editor "file" label (sample, watched file, or upload)
   const [committed, setCommitted] = useState<Committed>(() => ({
     instructions: parseText(initial.text).instructions,
     scenario: initial.scenario,
@@ -65,6 +66,7 @@ export default function RuntimeView() {
   const loadSample = (name: string) => {
     const e = toEditable(SAMPLES[name]);
     setSample(name);
+    setFname(`${name}.grid`);
     setText(e.text);
     setScenario(e.scenario);
     commit(parseText(e.text).instructions, e.scenario);
@@ -111,6 +113,8 @@ export default function RuntimeView() {
       const instrs = watch.directions.instructions as Instruction[];
       setText(instructionsToText(instrs));
       setScenario(watch.scenario ?? null);
+      setSample('');
+      setFname('directions.json');
       commit(instrs, watch.scenario ?? null);
     }
   }, [watch]);
@@ -137,6 +141,8 @@ export default function RuntimeView() {
     const file = e.target.files?.[0];
     if (!file) return;
     const raw = await file.text();
+    setSample('');
+    setFname(file.name);
     try {
       const ed = toEditable(JSON.parse(raw));
       setText(ed.text);
@@ -154,6 +160,8 @@ export default function RuntimeView() {
       const ed = toEditable(JSON.parse(await navigator.clipboard.readText()));
       setText(ed.text);
       setScenario(ed.scenario);
+      setSample('');
+      setFname('pasted.json');
       commit(parseText(ed.text).instructions, ed.scenario);
     } catch {
       alert('Clipboard did not contain valid directions JSON.');
@@ -194,6 +202,9 @@ export default function RuntimeView() {
             <span className="eyebrow">Program</span>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
               <select className="select" value={sample} onChange={(e) => loadSample(e.target.value)}>
+                <option value="" disabled>
+                  sample…
+                </option>
                 <option value="spiral">spiral</option>
                 <option value="detour">detour</option>
                 <option value="loop">loop</option>
@@ -210,7 +221,7 @@ export default function RuntimeView() {
                 <span className="d" />
                 <span className="d" />
               </div>
-              <span className="fname">{sample}.grid</span>
+              <span className="fname">{fname}</span>
             </div>
             <Editor value={text} onChange={setText} onRun={run} activeLine={activeLine} />
           </div>

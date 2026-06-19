@@ -14,19 +14,27 @@ export function useDirectionsPoll(initial: Directions, intervalMs = 500): Run {
   useEffect(() => {
     let stopped = false;
     let timer: ReturnType<typeof setTimeout>;
+    // The mtime observed on the first poll. A directions.json that already exists
+    // when the app starts is treated as the baseline and ignored, so the app opens
+    // on its sample — only a file (re)written *while the app is running* is loaded.
+    let baseline: number | null = null;
 
     const tick = async () => {
       try {
         const res = await fetch('/api/directions', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
-          if (data?.directions?.instructions && data.mtimeMs) {
+          const mtimeMs: number = data?.mtimeMs ?? 0;
+          const hasDirections = !!data?.directions?.instructions;
+          if (baseline === null) {
+            baseline = hasDirections ? mtimeMs : 0; // first sight: remember, don't load
+          } else if (hasDirections && mtimeMs > baseline) {
             setRun((prev) =>
-              data.mtimeMs !== prev.mtimeMs
+              mtimeMs !== prev.mtimeMs
                 ? {
                     directions: data.directions as Directions,
                     scenario: (data.scenario as Scenario) ?? undefined,
-                    mtimeMs: data.mtimeMs,
+                    mtimeMs,
                   }
                 : prev,
             );
