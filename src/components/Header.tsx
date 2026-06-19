@@ -7,10 +7,6 @@ export function Header() {
         <span className="divider" />
         <span className="app-name">Grid Runtime</span>
       </div>
-      <div className="confidential">
-        <span className="dot" />
-        Confidential
-      </div>
     </header>
   );
 }
