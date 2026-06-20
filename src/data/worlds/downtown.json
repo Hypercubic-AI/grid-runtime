@@ -1,7 +1,7 @@
 {
   "name": "downtown",
-  "width": 61,
-  "height": 41,
+  "width": 101,
+  "height": 61,
   "block": 10,
   "walls": [[35, 20], [36, 20], [37, 20]],
   "oneways": [

@@ -35,7 +35,7 @@ export function usePlayer(frames: Frame[], opts: { autoPlay?: boolean } = {}): P
   const autoPlay = opts.autoPlay ?? true;
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(2);
+  const [speed, setSpeed] = useState(4);
 
   // New program/frames: rewind, and auto-play only if asked AND there is something to play.
   useEffect(() => {

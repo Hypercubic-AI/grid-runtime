@@ -17,12 +17,12 @@ import { Status } from '@/components/Status';
 import { Legend } from '@/components/Legend';
 import { Editor } from '@/components/Editor';
 import worldData from '@/data/worlds/downtown.json';
-import spiralRaw from '@/data/samples/spiral.json';
+import sweepRaw from '@/data/samples/sweep.json';
 import detourRaw from '@/data/samples/detour.json';
 import loopRaw from '@/data/samples/loop.json';
 
 const WORLD = worldData as World;
-const SAMPLES: Record<string, unknown> = { spiral: spiralRaw, detour: detourRaw, loop: loopRaw };
+const SAMPLES: Record<string, unknown> = { sweep: sweepRaw, detour: detourRaw, loop: loopRaw };
 
 function toEditable(raw: unknown): { text: string; scenario: Scenario | null } {
   const { instructions } = parseJson(raw);
@@ -36,13 +36,13 @@ interface Committed {
   runId: number;
 }
 
-const initial = toEditable(SAMPLES.spiral);
+const initial = toEditable(SAMPLES.sweep);
 
 export default function RuntimeView() {
   const [text, setText] = useState(initial.text);
   const [scenario, setScenario] = useState<Scenario | null>(initial.scenario);
-  const [sample, setSample] = useState('spiral'); // selected sample, or '' when a non-sample source is loaded
-  const [fname, setFname] = useState('spiral.grid'); // the editor "file" label (sample, watched file, or upload)
+  const [sample, setSample] = useState('sweep'); // selected sample, or '' when a non-sample source is loaded
+  const [fname, setFname] = useState('sweep.grid'); // the editor "file" label (sample, watched file, or upload)
   const [committed, setCommitted] = useState<Committed>(() => ({
     instructions: parseText(initial.text).instructions,
     scenario: initial.scenario,
@@ -206,7 +206,7 @@ export default function RuntimeView() {
                 <option value="" disabled>
                   sample…
                 </option>
-                <option value="spiral">spiral</option>
+                <option value="sweep">sweep</option>
                 <option value="detour">detour</option>
                 <option value="loop">loop</option>
               </select>

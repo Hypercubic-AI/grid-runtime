@@ -5,7 +5,7 @@ import type { World, Directions, Scenario } from '@/lib/types';
 import world from '@/data/worlds/downtown.json';
 import loop from '@/data/samples/loop.json';
 import straightEast from '@/data/samples/straight-east.json';
-import spiral from '@/data/samples/spiral.json';
+import sweep from '@/data/samples/sweep.json';
 import detour from '@/data/samples/detour.json';
 
 const W = world as World;
@@ -27,8 +27,8 @@ describe('integration: samples on the default world', () => {
     expect(passes(straightEast as unknown as Bundle)).toBe(true);
   });
 
-  it('spiral bundle PASSes (hero demo)', () => {
-    expect(passes(spiral as unknown as Bundle)).toBe(true);
+  it('sweep bundle PASSes (hero demo, fills the grid)', () => {
+    expect(passes(sweep as unknown as Bundle)).toBe(true);
   });
 
   it('detour bundle PASSes and routes around the construction', () => {

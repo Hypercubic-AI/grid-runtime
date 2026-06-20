@@ -1,0 +1,19 @@
+{
+  "directions": {
+    "instructions": [
+      { "op": "REPEAT", "count": 5, "body": [
+        { "op": "MOVE", "n": 60 },
+        { "op": "TURN", "dir": "LEFT" }, { "op": "MOVE", "n": 10 }, { "op": "TURN", "dir": "LEFT" },
+        { "op": "MOVE", "n": 60 },
+        { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 10 }, { "op": "TURN", "dir": "RIGHT" }
+      ] },
+      { "op": "MOVE", "n": 60 },
+      { "op": "ARRIVE" }
+    ]
+  },
+  "scenario": {
+    "world": "downtown",
+    "start": { "cell": [0, 60], "facing": "S" },
+    "expected": { "cell": [100, 0], "facing": "S" }
+  }
+}
