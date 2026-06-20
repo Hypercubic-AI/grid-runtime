@@ -19,6 +19,7 @@ export interface Player {
   total: number;
   playing: boolean;
   speed: number;
+  frameMs: number; // ms between frames at the current speed; sync the robot's CSS transition to this
   play: () => void;
   pause: () => void;
   toggle: () => void;
@@ -34,7 +35,7 @@ export function usePlayer(frames: Frame[], opts: { autoPlay?: boolean } = {}): P
   const autoPlay = opts.autoPlay ?? true;
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(2);
 
   // New program/frames: rewind, and auto-play only if asked AND there is something to play.
   useEffect(() => {
@@ -60,6 +61,7 @@ export function usePlayer(frames: Frame[], opts: { autoPlay?: boolean } = {}): P
     total: frames.length,
     playing,
     speed,
+    frameMs: 1000 / fpsForSpeed(speed),
     play: () => setPlaying(true),
     pause: () => setPlaying(false),
     toggle: () => setPlaying((p) => !p),

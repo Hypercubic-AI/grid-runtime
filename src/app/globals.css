@@ -247,7 +247,7 @@ main {
   fill: #1a1407;
 }
 .robot {
-  transition: transform 70ms linear;
+  transition: transform var(--robot-transition, 70ms) linear;
 }
 .robot.crashed .robot-body {
   fill: var(--red);
@@ -519,7 +519,7 @@ main {
   justify-content: center;
   gap: 8px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   color: #d2cabd;
   padding: 11px 14px;
   border-radius: 10px;

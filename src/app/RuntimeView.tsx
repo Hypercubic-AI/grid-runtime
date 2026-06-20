@@ -186,6 +186,7 @@ export default function RuntimeView() {
                 facing={player.frame.facing}
                 worldHeight={WORLD.height}
                 status={player.frame.status}
+                transitionMs={player.frameMs}
               />
             </CityGrid>
             {!hasProgram && <div className="stage-hint">Write a program or load a sample</div>}
