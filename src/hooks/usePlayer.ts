@@ -18,9 +18,11 @@ export interface Player {
   index: number;
   total: number;
   playing: boolean;
+  atEnd: boolean; // true once playback has reached the final frame (offer a replay control)
   speed: number;
   frameMs: number; // ms between frames at the current speed; sync the robot's CSS transition to this
   play: () => void;
+  replay: () => void; // rewind to the start and play again
   pause: () => void;
   toggle: () => void;
   toStart: () => void;
@@ -60,9 +62,14 @@ export function usePlayer(frames: Frame[], opts: { autoPlay?: boolean } = {}): P
     index,
     total: frames.length,
     playing,
+    atEnd: frames.length > 1 && index >= frames.length - 1,
     speed,
     frameMs: 1000 / fpsForSpeed(speed),
     play: () => setPlaying(true),
+    replay: () => {
+      setIndex(0);
+      setPlaying(true);
+    },
     pause: () => setPlaying(false),
     toggle: () => setPlaying((p) => !p),
     toStart: () => {

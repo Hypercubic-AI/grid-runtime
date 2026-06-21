@@ -34,8 +34,22 @@ export function Transport({ player }: { player: Player }) {
       <div className="tctrls">
         <button className="tbtn" onClick={player.toStart} aria-label="To start" title="To start (Home)">⏮</button>
         <button className="tbtn" onClick={player.stepBack} aria-label="Step back" title="Step back (←)">‹</button>
-        <button className="tbtn play" onClick={player.toggle} aria-label={player.playing ? 'Pause' : 'Play'} title="Play / pause (Space)">
-          {player.playing ? '❚❚' : '▶'}
+        <button
+          className="tbtn play"
+          onClick={player.atEnd ? player.replay : player.toggle}
+          aria-label={player.atEnd ? 'Replay' : player.playing ? 'Pause' : 'Play'}
+          title={player.atEnd ? 'Replay from start' : 'Play / pause (Space)'}
+        >
+          {player.atEnd ? (
+            <svg className="ticon" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <polyline points="1 4 1 10 7 10" />
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+            </svg>
+          ) : player.playing ? (
+            '❚❚'
+          ) : (
+            '▶'
+          )}
         </button>
         <button className="tbtn" onClick={player.step} aria-label="Step forward" title="Step forward (→)">›</button>
         <button className="tbtn" onClick={player.toEnd} aria-label="To end" title="To end (End)">⏭</button>
