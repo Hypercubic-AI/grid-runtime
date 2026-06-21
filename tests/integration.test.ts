@@ -6,7 +6,7 @@ import { isRoad } from '@/lib/world';
 import type { World, Directions, Scenario } from '@/lib/types';
 import world from '@/data/worlds/downtown.terrain.json';
 import loop from '@/data/samples/loop.json';
-import sweep from '@/data/samples/sweep.json';
+import pathSample from '@/data/samples/path.json';
 import detour from '@/data/samples/detour.json';
 
 const W = world as World;
@@ -40,8 +40,8 @@ describe('integration: living-city samples on the loaded world', () => {
     expect(r.final.facing).toBe(W.start.facing); // E
   });
 
-  it('sweep PASSes and visibly tours the central park + a library', () => {
-    const b = sweep as unknown as Bundle;
+  it('path PASSes and visibly tours the central park + a library', () => {
+    const b = pathSample as unknown as Bundle;
     expect(passes(b)).toBe(true);
     const r = execute(W, b.scenario.start, b.directions);
     expect(r.outcome).toBe('arrived');
