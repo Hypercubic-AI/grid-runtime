@@ -16,6 +16,25 @@
   --pink: #f472b6;
   --red: #f87171;
   --mono: "SF Mono", ui-monospace, "JetBrains Mono", "Roboto Mono", Menlo, Consolas, monospace;
+  /* living-city tokens (warm) */
+  --wall: #c9a884;
+  --wall-side: #a8875f;
+  --roof-a: #b4543a;
+  --roof-b: #9c6b3f;
+  --roof-c: #7d5a8a;
+  --roof-side: #6f4632;
+  --window: #ffd98a;
+  --door: #5a3d28;
+  --stone: #b8b0a2;
+  --stone-dark: #8f877a;
+  --stone-step: #cfc7b8;
+  --column: #d8d1c4;
+  --foliage: #4f9d56;
+  --foliage-dark: #2f6f38;
+  --trunk: #6b4a2f;
+  --lawn: rgba(79, 157, 86, 0.16);
+  --plot: rgba(184, 176, 162, 0.10);
+  --bshadow: rgba(0, 0, 0, 0.28);
 }
 
 * {
@@ -171,6 +190,29 @@ main {
   stroke: #2a251b;
   stroke-width: 1;
 }
+
+/* living-city building paint (token-driven, paint-only — no transitions) */
+.blk.lawn-tint { fill: #16210f; }
+.footprints .plot { fill: var(--plot); stroke: none; }
+.footprints .plot.lawn { fill: var(--lawn); }
+.buildings .bshadow { fill: var(--bshadow); }
+.buildings .wall-front { fill: var(--wall); }
+.buildings .wall-side { fill: var(--wall-side); }
+.buildings .roof-side { fill: var(--roof-side); }
+.buildings .roof.roof-a { fill: var(--roof-a); }
+.buildings .roof.roof-b { fill: var(--roof-b); }
+.buildings .roof.roof-c { fill: var(--roof-c); }
+.buildings .win { fill: var(--window); }
+.buildings .door { fill: var(--door); }
+.buildings .trunk { fill: var(--trunk); }
+.buildings .canopy-dark { fill: var(--foliage-dark); }
+.buildings .canopy { fill: var(--foliage); }
+.buildings .stone-step { fill: var(--stone-step); }
+.buildings .stone-body { fill: var(--stone); }
+.buildings .column { fill: var(--column); }
+.buildings .roof-civic { fill: var(--stone-dark); }
+.buildings .roof-lib { fill: var(--stone-dark); }
+
 .road {
   stroke: #3a352a;
   stroke-linecap: round;
@@ -421,10 +463,10 @@ main {
   background: #3a352a;
   border: 1px solid #4a4536;
 }
-.sw.building {
-  background: #1a1610;
-  border: 1px solid #2a251b;
-}
+.sw.house { background: var(--wall); border: 1px solid var(--wall-side); }
+.sw.park { background: var(--foliage); border: 1px solid var(--foliage-dark); }
+.sw.library { background: var(--stone); border: 1px solid var(--stone-dark); }
+.sw.civic { background: var(--stone-dark); border: 1px solid var(--stone-dark); }
 .sw.constr {
   background: repeating-linear-gradient(45deg, var(--red) 0 3px, #1a1610 3px 6px);
   border: 1px solid var(--red);
@@ -572,6 +614,16 @@ main {
   font-size: 11.5px;
   color: var(--muted-2);
 }
+.terrain-status {
+  display: flex; align-items: center; gap: 9px;
+  padding: 9px 13px; border-radius: 10px; font-size: 12.5px;
+  border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+}
+.terrain-status .ic { width: 20px; height: 20px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+.terrain-status.ok { background: linear-gradient(180deg, rgba(52,211,153,0.05), transparent), var(--panel); }
+.terrain-status.ok .ic { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.3); color: var(--emerald); }
+.terrain-status.err { border-color: rgba(248,113,113,0.3); }
+.terrain-status.err .ic { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
 .select {
   font-family: var(--mono);
   font-size: 12px;
