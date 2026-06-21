@@ -139,8 +139,9 @@ main {
 }
 .stage-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
+  min-height: 40px;
   padding: 0 2px;
 }
 .eyebrow {
@@ -337,7 +338,8 @@ main {
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 13px 18px;
+  min-height: 48px;
+  padding: 6px 18px;
   border: 1px solid var(--border);
   border-radius: 14px;
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
@@ -413,6 +415,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 48px;
   gap: 18px;
   padding: 0 4px;
 }
@@ -475,6 +478,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  min-height: 40px;
 }
 .run {
   display: inline-flex;
@@ -540,6 +544,8 @@ main {
 .ed-actions {
   flex: 0 0 auto;
   display: flex;
+  align-items: center;
+  min-height: 48px;
   gap: 10px;
 }
 .sbtn {
@@ -562,7 +568,8 @@ main {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 12px 15px;
+  min-height: 48px;
+  padding: 8px 15px;
   border-radius: 11px;
   border: 1px solid var(--border);
   background: var(--panel);
