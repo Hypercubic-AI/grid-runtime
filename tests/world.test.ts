@@ -54,3 +54,18 @@ describe('oneWayBlocks', () => {
     expect(oneWayBlocks(W, 10, 10, 'S')).toBe(false); // world with no one-ways
   });
 });
+
+import type { Place, Footprint, World as W2 } from '@/lib/types';
+describe('Place/World.places typing', () => {
+  it('accepts a world with places of each type', () => {
+    const fp: Footprint = [41, 31, 9, 9];
+    const places: Place[] = [
+      { type: 'park', cell: [45, 30], footprint: fp },
+      { type: 'library', cell: [15, 50], footprint: [11, 51, 9, 9] },
+      { type: 'civic', cell: [45, 20], footprint: [41, 21, 9, 9] },
+    ];
+    const w: W2 = { name: 'x', width: 101, height: 61, block: 10, walls: [], start: { cell: [10, 30], facing: 'E' }, places };
+    expect(w.places?.length).toBe(3);
+    expect(w.places?.[0].footprint).toEqual(fp);
+  });
+});

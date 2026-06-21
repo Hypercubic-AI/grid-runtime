@@ -22,6 +22,15 @@ export interface OneWay {
   allow: Dir;
 }
 
+export type Footprint = [number, number, number, number]; // [x, y, w, h] interior rect (y increases North)
+
+// A landmark/place. The shipped projection carries no name (disguise); see design §3.2.
+export interface Place {
+  type: 'park' | 'library' | 'civic';
+  cell: [number, number];   // entrance: a road cell, edge-adjacent to a footprint cell
+  footprint: Footprint;     // interior, non-road rectangle the renderer fills
+}
+
 export interface World {
   name: string;
   width: number; // cells along x (0..width-1), x increases East
@@ -30,6 +39,7 @@ export interface World {
   walls: [number, number][];
   oneways?: OneWay[];
   start: StartState;
+  places?: Place[]; // NEW — semantic keys from a full file, if present, are ignored (not typed)
 }
 
 export interface Scenario {
