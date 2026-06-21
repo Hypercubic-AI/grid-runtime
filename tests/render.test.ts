@@ -91,3 +91,99 @@ describe('oneWayChevrons', () => {
     expect(cs.every((c) => c.y !== 0)).toBe(true);
   });
 });
+
+import { placeRect, maxBuildingHeight, clampSilhouette, houseBlocks, buildingsZSorted, cellHash } from '@/lib/render';
+import type { Footprint } from '@/lib/types';
+
+const CITY: World = {
+  name: 'd', width: 101, height: 61, block: 10,
+  walls: [[34, 30], [35, 30], [36, 30]],
+  oneways: [{ cell: [50, 30], allow: 'N' }],
+  start: { cell: [10, 30], facing: 'E' },
+  places: [
+    { type: 'park', cell: [45, 30], footprint: [41, 31, 9, 9] },
+    { type: 'library', cell: [15, 50], footprint: [11, 51, 9, 9] },
+  ],
+};
+
+describe('placeRect (Y-flip inversion)', () => {
+  it('pins the central park rect: top comes from the NORTH row fy+fh-1', () => {
+    const r = placeRect(CITY, [41, 31, 9, 9] as Footprint);
+    expect(r.y).toBe(sy(61, 39) - CELL / 2);   // north row 39, NOT 31
+    expect(r.y).not.toBe(sy(61, 31) - CELL / 2);
+    expect(r).toEqual({ x: 567, y: 287, width: 126, height: 126 });
+  });
+});
+
+describe('maxBuildingHeight', () => {
+  it('is (block - 2) * CELL', () => {
+    expect(maxBuildingHeight(CITY)).toBe((10 - 2) * CELL); // 112
+  });
+});
+
+describe('clampSilhouette', () => {
+  it('keeps body + roof within maxBuildingHeight for any block size', () => {
+    const small: World = { ...CITY, block: 4 }; // cap = (4-2)*CELL = 28
+    const cap = maxBuildingHeight(small);
+    const house = clampSilhouette(small, CELL * 1.5, CELL * 0.55);
+    expect(house.body + house.roof).toBeLessThanOrEqual(cap);
+    const civic = clampSilhouette(small, CELL * 6, CELL * 1.1);
+    expect(civic.body + civic.roof).toBeLessThanOrEqual(cap);
+    // a normal house on the default world is unchanged
+    expect(clampSilhouette(CITY, CELL * 1.5, CELL * 0.55).body).toBe(CELL * 1.5);
+  });
+});
+
+describe('houseBlocks', () => {
+  it('excludes blocks whose interior intersects any footprint', () => {
+    const blocks = houseBlocks(CITY);
+    // The central park footprint [41,31,9,9] lies in the block with SW corner (40,30).
+    expect(blocks.some((b) => b.x0 === 40 && b.y0 === 30)).toBe(false);
+    // The NW library footprint [11,51,9,9] lies in block (10,50).
+    expect(blocks.some((b) => b.x0 === 10 && b.y0 === 50)).toBe(false);
+    // A plain block, e.g. (0,0), is a house block.
+    expect(blocks.some((b) => b.x0 === 0 && b.y0 === 0)).toBe(true);
+    // 10x6 = 60 blocks total, minus the 2 occupied by these two places = 58.
+    expect(blocks.length).toBe(60 - 2);
+  });
+  it('excludes a block even when the footprint is a sub-block rectangle', () => {
+    const w: World = { ...CITY, places: [{ type: 'civic', cell: [5, 0], footprint: [2, 1, 3, 3] }] };
+    // footprint sits inside block (0,0); that block must be excluded though it only covers 3x3 of the interior.
+    expect(houseBlocks(w).some((b) => b.x0 === 0 && b.y0 === 0)).toBe(false);
+  });
+});
+
+describe('buildingsZSorted', () => {
+  it('orders north-to-south by base ascending (south paints last / on top)', () => {
+    const ds = buildingsZSorted(CITY);
+    for (let i = 1; i < ds.length; i++) expect(ds[i].base).toBeGreaterThanOrEqual(ds[i - 1].base);
+    // every place is present
+    expect(ds.filter((d) => d.kind === 'park').length).toBe(1);
+    expect(ds.filter((d) => d.kind === 'library').length).toBe(1);
+  });
+  it('breaks ties deterministically by (base, cell-y, cell-x, kind)', () => {
+    // two places with the SAME footprint south row -> same base; tie-break must order them.
+    const w: World = {
+      ...CITY,
+      places: [
+        { type: 'park', cell: [45, 30], footprint: [41, 31, 9, 9] },   // base from y=31, fx=41
+        { type: 'civic', cell: [25, 30], footprint: [21, 31, 9, 9] },  // same base (y=31), fx=21
+      ],
+    };
+    const ds = buildingsZSorted(w).filter((d) => d.kind === 'park' || d.kind === 'civic');
+    // same base => tie-break on cell-x (21 < 41) => civic before park
+    expect(ds[0].kind).toBe('civic');
+    expect(ds[1].kind).toBe('park');
+    expect(ds[0].base).toBe(ds[1].base);
+  });
+});
+
+describe('cellHash', () => {
+  it('is deterministic and in [0,1)', () => {
+    expect(cellHash(3, 7)).toBe(cellHash(3, 7));
+    expect(cellHash(3, 7)).not.toBe(cellHash(7, 3));
+    const v = cellHash(123, 456);
+    expect(v).toBeGreaterThanOrEqual(0);
+    expect(v).toBeLessThan(1);
+  });
+});
