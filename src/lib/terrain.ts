@@ -1,4 +1,4 @@
-import type { World, Place, Footprint, Dir } from './types';
+import type { World, Footprint, Dir } from './types';
 import { inBounds, isRoad } from './world';
 
 export type TerrainResult = { ok: true; world: World } | { ok: false; error: string };

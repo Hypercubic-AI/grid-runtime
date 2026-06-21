@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { validateTerrain } from '@/lib/terrain';
-import type { World } from '@/lib/types';
 import projection from '@/data/worlds/downtown.terrain.json';
 
 const base = (): Record<string, unknown> => ({

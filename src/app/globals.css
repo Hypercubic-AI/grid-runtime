@@ -21,7 +21,7 @@
   --wall-side: #a8875f;
   --roof-a: #b4543a;
   --roof-b: #9c6b3f;
-  --roof-c: #7d5a8a;
+  --roof-c: #5e7180;
   --roof-side: #6f4632;
   --window: #ffd98a;
   --door: #5a3d28;
@@ -35,6 +35,10 @@
   --lawn: rgba(79, 157, 86, 0.16);
   --plot: rgba(184, 176, 162, 0.10);
   --bshadow: rgba(0, 0, 0, 0.28);
+  --cella: #34302a;
+  --column-lite: #ece6da;
+  --stone-side: #726d60;
+  --foliage-lite: #74c47b;
 }
 
 * {
@@ -212,6 +216,10 @@ main {
 .buildings .column { fill: var(--column); }
 .buildings .roof-civic { fill: var(--stone-dark); }
 .buildings .roof-lib { fill: var(--stone-dark); }
+.buildings .cella { fill: var(--cella); }
+.buildings .column-lite { fill: var(--column-lite); }
+.buildings .stone-side { fill: var(--stone-side); }
+.buildings .canopy-lite { fill: var(--foliage-lite); }
 
 .road {
   stroke: #3a352a;
