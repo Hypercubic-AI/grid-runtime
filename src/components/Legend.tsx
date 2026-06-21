@@ -2,7 +2,10 @@ const ITEMS = [
   { cls: 'start', label: 'start' },
   { cls: 'goal', label: 'goal' },
   { cls: 'road', label: 'road' },
-  { cls: 'building', label: 'building' },
+  { cls: 'house', label: 'house' },
+  { cls: 'park', label: 'park' },
+  { cls: 'library', label: 'library' },
+  { cls: 'civic', label: 'civic' },
   { cls: 'constr', label: 'construction' },
   { cls: 'oneway', label: 'one-way' },
 ];
