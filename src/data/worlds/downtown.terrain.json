@@ -1,0 +1,173 @@
+{
+  "name": "downtown",
+  "width": 101,
+  "height": 61,
+  "block": 10,
+  "start": {
+    "cell": [
+      10,
+      30
+    ],
+    "facing": "E"
+  },
+  "walls": [
+    [
+      34,
+      30
+    ],
+    [
+      35,
+      30
+    ],
+    [
+      36,
+      30
+    ]
+  ],
+  "oneways": [
+    {
+      "cell": [
+        50,
+        30
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        31
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        32
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        33
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        34
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        35
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        36
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        37
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        38
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        39
+      ],
+      "allow": "N"
+    },
+    {
+      "cell": [
+        50,
+        40
+      ],
+      "allow": "N"
+    }
+  ],
+  "places": [
+    {
+      "type": "park",
+      "cell": [
+        45,
+        30
+      ],
+      "footprint": [
+        41,
+        31,
+        9,
+        9
+      ]
+    },
+    {
+      "type": "park",
+      "cell": [
+        85,
+        40
+      ],
+      "footprint": [
+        81,
+        41,
+        9,
+        9
+      ]
+    },
+    {
+      "type": "library",
+      "cell": [
+        15,
+        50
+      ],
+      "footprint": [
+        11,
+        51,
+        9,
+        9
+      ]
+    },
+    {
+      "type": "library",
+      "cell": [
+        75,
+        10
+      ],
+      "footprint": [
+        71,
+        11,
+        9,
+        9
+      ]
+    },
+    {
+      "type": "civic",
+      "cell": [
+        45,
+        20
+      ],
+      "footprint": [
+        41,
+        21,
+        9,
+        9
+      ]
+    }
+  ]
+}
