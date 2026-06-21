@@ -172,19 +172,6 @@ export default function RuntimeView() {
     e.target.value = '';
   };
 
-  const onPasteJson = async () => {
-    try {
-      const ed = toEditable(JSON.parse(await navigator.clipboard.readText()));
-      setText(ed.text);
-      setScenario(ed.scenario);
-      setSample('');
-      setFname('pasted.json');
-      commit(parseText(ed.text).instructions, ed.scenario);
-    } catch {
-      alert('Clipboard did not contain valid directions JSON.');
-    }
-  };
-
   const onLoadMap = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -272,13 +259,10 @@ export default function RuntimeView() {
           </div>
           <div className="ed-actions">
             <button className="sbtn" onClick={() => fileRef.current?.click()}>
-              ↑ Upload
-            </button>
-            <button className="sbtn" onClick={onPasteJson}>
-              ⎘ Paste JSON
+              Upload
             </button>
             <button className="sbtn" onClick={() => mapRef.current?.click()}>
-              🗺 Load map
+              Load map
             </button>
             <input ref={fileRef} type="file" accept=".json,.grid,.txt" hidden onChange={onUpload} />
             <input ref={mapRef} type="file" accept=".terrain,.terrain.json,.json" hidden onChange={onLoadMap} />
