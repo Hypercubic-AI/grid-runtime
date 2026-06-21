@@ -39,7 +39,9 @@ export interface World {
   walls: [number, number][];
   oneways?: OneWay[];
   start: StartState;
-  places?: Place[]; // NEW — semantic keys from a full file, if present, are ignored (not typed)
+  places?: Place[];
+  streets?: { name: string; row: number }[]; // named horizontal roads (drives on-map blade signs)
+  avenues?: { count: number };               // numbered vertical roads (drives on-map blade signs)
 }
 
 export interface Scenario {

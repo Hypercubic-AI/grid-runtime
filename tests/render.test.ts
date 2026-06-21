@@ -191,7 +191,7 @@ describe('cellHash', () => {
 import { cityViewBox } from '@/lib/render';
 
 describe('cityViewBox', () => {
-  it('widens the top margin by maxBuildingHeight', () => {
-    expect(cityViewBox(CITY, CELL)).toBe('-14 -126 1428 980');
+  it('frames the grid with an even pad on every side', () => {
+    expect(cityViewBox(CITY, CELL)).toBe('-14 -14 1428 868');
   });
 });

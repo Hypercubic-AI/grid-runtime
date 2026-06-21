@@ -3,6 +3,12 @@ import type { World } from '@/lib/types';
 import { CELL, ROAD_W, NODE_R, sx, sy, multiples, barrierRects, oneWayChevrons, cityViewBox } from '@/lib/render';
 import { FootprintFills, Buildings } from './buildings';
 
+const ordinal = (n: number) => {
+  const v = n % 100;
+  const suf = v >= 11 && v <= 13 ? 'TH' : ['TH', 'ST', 'ND', 'RD'][n % 10] || 'TH';
+  return `${n}${suf}`;
+};
+
 export function CityGrid({
   world,
   start,
@@ -22,6 +28,8 @@ export function CityGrid({
   const netW = (world.width - 1) * CELL; // road network spans avenue 0 .. last avenue
   const netH = (world.height - 1) * CELL; // .. and street 0 .. last street
   const PAD = CELL; // margin so border roads sit inside the rounded card, never clipped
+  const SIGN_L = 70; // street-name blades sit in the left margin (wide enough for the longest name); mirrored on the right to center the grid
+  const SIGN_B = 26; // avenue-number blades sit in the bottom margin; mirrored on top to center the grid
   const avenues = multiples(world.width, world.block);
   const streets = multiples(world.height, world.block);
   const barriers = barrierRects(world);
@@ -40,7 +48,7 @@ export function CityGrid({
   }
 
   return (
-    <svg className="city" viewBox={cityViewBox(world, PAD)} preserveAspectRatio="xMidYMid meet" role="img" aria-label="City street map">
+    <svg className="city" viewBox={cityViewBox(world, PAD, { left: SIGN_L, right: SIGN_L, top: SIGN_B, bottom: SIGN_B })} preserveAspectRatio="xMidYMid meet" role="img" aria-label="City street map">
       <defs>
         <pattern id="hazard" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect width="22" height="22" fill="#1f1812" />
@@ -139,6 +147,34 @@ export function CityGrid({
           <text className="marker-label" x={goalXY[0]} y={goalXY[1] - CELL * 0.85}>GOAL</text>
         </g>
       )}
+
+      {/* street & avenue blade signs (in the margins) */}
+      <g className="signs">
+        {(world.streets ?? []).map((s) => {
+          const cy = sy(world.height, s.row * world.block);
+          const label = s.name.toUpperCase();
+          const w = label.length * 6.6 + 13;
+          const x = -10 - w;
+          return (
+            <g key={`st${s.row}`}>
+              <rect className="blade-bg" x={x} y={cy - 8.5} width={w} height={17} rx={2.5} />
+              <text className="blade-text" x={x + w / 2} y={cy + 3.6}>{label}</text>
+            </g>
+          );
+        })}
+        {Array.from({ length: Math.max(0, (world.avenues?.count ?? 0) - 1) }, (_, i) => i + 1).map((a) => {
+          const cx = sx(a * world.block);
+          const label = ordinal(a);
+          const w = label.length * 5.6 + 9;
+          const y = netH + 9;
+          return (
+            <g key={`av${a}`}>
+              <rect className="blade-bg" x={cx - w / 2} y={y} width={w} height={15} rx={2.5} />
+              <text className="blade-text sm" x={cx} y={y + 10.6}>{label}</text>
+            </g>
+          );
+        })}
+      </g>
 
       {/* trail + robot on top */}
       {children}

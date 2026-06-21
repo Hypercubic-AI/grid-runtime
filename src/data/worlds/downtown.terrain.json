@@ -418,6 +418,39 @@
       "allow": "N"
     }
   ],
+  "streets": [
+    {
+      "name": "Brannan",
+      "row": 0
+    },
+    {
+      "name": "Bryant",
+      "row": 1
+    },
+    {
+      "name": "Harrison",
+      "row": 2
+    },
+    {
+      "name": "Folsom",
+      "row": 3
+    },
+    {
+      "name": "Howard",
+      "row": 4
+    },
+    {
+      "name": "Mission",
+      "row": 5
+    },
+    {
+      "name": "Market",
+      "row": 6
+    }
+  ],
+  "avenues": {
+    "count": 11
+  },
   "places": [
     {
       "type": "park",

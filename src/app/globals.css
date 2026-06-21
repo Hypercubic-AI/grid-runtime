@@ -289,11 +289,33 @@ main {
   stroke-width: 2.5;
 }
 .marker-label {
-  fill: var(--muted);
+  fill: #f3ede2;
+  paint-order: stroke;
+  stroke: rgba(8, 7, 6, 0.85);
+  stroke-width: 2.6px;
+  stroke-linejoin: round;
   font-family: var(--mono);
-  font-size: 9px;
+  font-size: 9.5px;
+  font-weight: 600;
   letter-spacing: 0.14em;
   text-anchor: middle;
+}
+.signs .blade-bg {
+  fill: #f1ede4;
+  stroke: #c8c1b2;
+  stroke-width: 0.75;
+}
+.signs .blade-text {
+  fill: #15120c;
+  font-family: "Inter", -apple-system, system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-anchor: middle;
+}
+.signs .blade-text.sm {
+  font-size: 8px;
+  font-weight: 700;
 }
 .robot-body {
   fill: var(--amber);

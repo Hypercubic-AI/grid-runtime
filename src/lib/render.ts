@@ -229,11 +229,15 @@ export function cellHash(x: number, y: number): number {
   return h / 4294967296;
 }
 
-// viewBox string with a top margin widened by maxBuildingHeight so the tallest
-// roofs never clip; the bottom/sides keep the existing PAD.
-export function cityViewBox(w: World, pad: number): string {
+// viewBox framing the road network. Each side gets `pad` plus any per-side extra; buildings
+// stay within their blocks (capped at maxBuildingHeight), so no extra top room is needed.
+// Mirror the sign extras (left/bottom) onto the opposite sides to center the grid.
+export function cityViewBox(w: World, pad: number, extra: { left?: number; right?: number; top?: number; bottom?: number } = {}): string {
   const netW = (w.width - 1) * CELL;
   const netH = (w.height - 1) * CELL;
-  const maxBH = maxBuildingHeight(w);
-  return `${-pad} ${-(pad + maxBH)} ${netW + pad * 2} ${netH + pad * 2 + maxBH}`;
+  const left = pad + (extra.left ?? 0);
+  const right = pad + (extra.right ?? 0);
+  const top = pad + (extra.top ?? 0);
+  const bottom = pad + (extra.bottom ?? 0);
+  return `${-left} ${-top} ${netW + left + right} ${netH + top + bottom}`;
 }
