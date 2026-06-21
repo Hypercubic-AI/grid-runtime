@@ -39,6 +39,7 @@
   --column-lite: #ece6da;
   --stone-side: #726d60;
   --foliage-lite: #74c47b;
+  --glass: #34454f;
 }
 
 * {
@@ -220,6 +221,7 @@ main {
 .buildings .column-lite { fill: var(--column-lite); }
 .buildings .stone-side { fill: var(--stone-side); }
 .buildings .canopy-lite { fill: var(--foliage-lite); }
+.buildings .glass { fill: var(--glass); }
 
 .road {
   stroke: #3a352a;

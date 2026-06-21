@@ -147,8 +147,6 @@ function Massing({ place, world }: { place: Place; world: World }) {
   return (
     <g className={`massing ${place.type}`}>
       <ellipse className="bshadow" cx={cx + depth * 0.7} cy={baseY + 2} rx={r.width * 0.5} ry={CELL * 0.22} />
-      {/* oblique right side for depth */}
-      <polygon className="stone-side" points={`${right + CELL * 0.55},${baseY} ${right + CELL * 0.55 + depth},${baseY - depth} ${right + CELL * 0.55 + depth},${pedPeak + depth} ${right + CELL * 0.55},${pedPeak + depth}`} />
       {/* stepped stylobate, widest at the bottom */}
       {[0, 1, 2].map((i) => {
         const inset = i * CELL * 0.34;
@@ -179,6 +177,48 @@ function Massing({ place, world }: { place: Place; world: World }) {
   );
 }
 
+// The library: a UCSD Geisel-style Brutalist tower — splayed concrete legs supporting
+// cantilevered floors that widen as they rise, with recessed dark-glass window bands.
+function Library({ place, world }: { place: Place; world: World }) {
+  const r = placeRect(world, place.footprint);
+  const cx = r.x + r.width / 2;
+  const baseY = r.y + r.height; // front (south) edge
+  const T = Math.min(CELL * 7.4, maxBuildingHeight(world)); // capped total height
+  const fullW = r.width * 0.76;          // widest (upper) floors
+  const legH = T * 0.2;
+  const podiumTop = baseY - legH;
+  const widths = [0.5, 0.6, 0.82, 0.96].map((f) => fullW * f); // narrow base -> wide top (cantilever)
+  const floorH = (T - legH) / widths.length;
+  return (
+    <g className="massing library">
+      <ellipse className="bshadow" cx={cx} cy={baseY + 2} rx={fullW * 0.58} ry={CELL * 0.22} />
+      {/* splayed concrete legs (wider at the base) */}
+      {[-1, 0, 1].map((s, k) => {
+        const lw = CELL * 0.5;
+        const botX = cx + s * widths[0] * 0.42;
+        const topX = cx + s * widths[0] * 0.24;
+        return (
+          <polygon key={`lg${k}`} className="stone-side" points={`${botX - lw / 2},${baseY} ${botX + lw / 2},${baseY} ${topX + lw / 2},${podiumTop} ${topX - lw / 2},${podiumTop}`} />
+        );
+      })}
+      {/* cantilevered floors (bottom -> top, widening): a recessed glass band capped by an overhanging slab */}
+      {widths.map((w, i) => {
+        const yt = podiumTop - (i + 1) * floorH; // floor top
+        const glassH = floorH * 0.64;
+        const slabH = floorH - glassH;
+        return (
+          <g key={`fl${i}`}>
+            <rect className="glass" x={cx - (w * 0.86) / 2} y={yt + slabH} width={w * 0.86} height={glassH} />
+            <rect className="stone-body" x={cx - w / 2} y={yt} width={w} height={slabH} />
+          </g>
+        );
+      })}
+      {/* parapet cap */}
+      <rect className="stone-step" x={cx - widths[widths.length - 1] / 2} y={podiumTop - widths.length * floorH - CELL * 0.2} width={widths[widths.length - 1]} height={CELL * 0.24} />
+    </g>
+  );
+}
+
 // Layer 4: every tall object, z-sorted (north→south) so fronts paint on top.
 export function Buildings({ world }: { world: World }) {
   const drawables = buildingsZSorted(world);
@@ -187,7 +227,8 @@ export function Buildings({ world }: { world: World }) {
       {drawables.map((d, i) => {
         if (d.kind === 'house' && d.block) return <BlockScape key={`b${i}`} block={d.block} world={world} />;
         if (d.kind === 'park' && d.place) return <ParkTrees key={`b${i}`} place={d.place} world={world} />;
-        if ((d.kind === 'library' || d.kind === 'civic') && d.place) return <Massing key={`b${i}`} place={d.place} world={world} />;
+        if (d.kind === 'library' && d.place) return <Library key={`b${i}`} place={d.place} world={world} />;
+        if (d.kind === 'civic' && d.place) return <Massing key={`b${i}`} place={d.place} world={world} />;
         return null;
       })}
     </g>
