@@ -1,19 +1,21 @@
 {
   "directions": {
     "instructions": [
-      { "op": "REPEAT", "count": 5, "body": [
-        { "op": "MOVE", "n": 60 },
-        { "op": "TURN", "dir": "LEFT" }, { "op": "MOVE", "n": 10 }, { "op": "TURN", "dir": "LEFT" },
-        { "op": "MOVE", "n": 60 },
-        { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 10 }, { "op": "TURN", "dir": "RIGHT" }
-      ] },
-      { "op": "MOVE", "n": 60 },
+      { "op": "TURN", "dir": "LEFT" }, { "op": "MOVE", "n": 10 },
+      { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 30 },
+      { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 10 },
+      { "op": "TURN", "dir": "LEFT" }, { "op": "MOVE", "n": 5 },
+      { "op": "MOVE", "n": 5 },
+      { "op": "TURN", "dir": "LEFT" }, { "op": "MOVE", "n": 10 },
+      { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 30 },
+      { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 30 },
+      { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 5 },
       { "op": "ARRIVE" }
     ]
   },
   "scenario": {
     "world": "downtown",
-    "start": { "cell": [0, 60], "facing": "S" },
-    "expected": { "cell": [100, 0], "facing": "S" }
+    "start": { "cell": [10, 30], "facing": "E" },
+    "expected": { "cell": [75, 10], "facing": "W" }
   }
 }

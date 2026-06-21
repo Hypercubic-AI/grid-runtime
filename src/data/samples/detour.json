@@ -2,18 +2,16 @@
   "directions": {
     "instructions": [
       { "op": "MOVE", "n": 10 },
-      { "op": "TURN", "dir": "LEFT" },
-      { "op": "MOVE", "n": 10 },
-      { "op": "TURN", "dir": "RIGHT" },
-      { "op": "MOVE", "n": 10 },
-      { "op": "TURN", "dir": "RIGHT" },
-      { "op": "MOVE", "n": 10 },
+      { "op": "TURN", "dir": "LEFT" }, { "op": "MOVE", "n": 10 },
+      { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 10 },
+      { "op": "TURN", "dir": "RIGHT" }, { "op": "MOVE", "n": 10 },
+      { "op": "TURN", "dir": "LEFT" }, { "op": "MOVE", "n": 20 },
       { "op": "ARRIVE" }
     ]
   },
   "scenario": {
     "world": "downtown",
-    "start": { "cell": [20, 20], "facing": "E" },
-    "expected": { "cell": [40, 20], "facing": "S" }
+    "start": { "cell": [20, 30], "facing": "E" },
+    "expected": { "cell": [60, 30], "facing": "E" }
   }
 }
