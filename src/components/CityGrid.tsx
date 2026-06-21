@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { World } from '@/lib/types';
-import { CELL, ROAD_W, NODE_R, sx, sy, multiples, barrierRects, oneWayChevrons } from '@/lib/render';
+import { CELL, ROAD_W, NODE_R, sx, sy, multiples, barrierRects, oneWayChevrons, cityViewBox } from '@/lib/render';
+import { FootprintFills, Buildings } from './buildings';
 
 export function CityGrid({
   world,
@@ -28,8 +29,18 @@ export function CityGrid({
   const chev = CELL * 0.34;
   const goalXY = goal ? ([sx(goal[0]), sy(world.height, goal[1])] as const) : null;
 
+  // Tint block grounds green under park footprints (their SW-corner block keys).
+  const parkBlocks = new Set<string>();
+  for (const p of world.places ?? []) {
+    if (p.type !== 'park') continue;
+    const [fx, fy] = p.footprint;
+    const bx = Math.floor(fx / world.block) * world.block;
+    const by = Math.floor(fy / world.block) * world.block;
+    parkBlocks.add(`${bx},${by}`);
+  }
+
   return (
-    <svg className="city" viewBox={`${-PAD} ${-PAD} ${netW + PAD * 2} ${netH + PAD * 2}`} preserveAspectRatio="xMidYMid meet" role="img" aria-label="City street map">
+    <svg className="city" viewBox={cityViewBox(world, PAD)} preserveAspectRatio="xMidYMid meet" role="img" aria-label="City street map">
       <defs>
         <pattern id="hazard" width="22" height="22" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect width="22" height="22" fill="#1f1812" />
@@ -45,12 +56,12 @@ export function CityGrid({
         </radialGradient>
       </defs>
 
-      {/* buildings (fill the blocks between roads) */}
+      {/* block grounds (tinted green under park footprints) */}
       {streets.slice(0, -1).map((y0) =>
         avenues.slice(0, -1).map((x0) => (
           <rect
             key={`b${x0}-${y0}`}
-            className="blk"
+            className={parkBlocks.has(`${x0},${y0}`) ? 'blk lawn-tint' : 'blk'}
             x={sx(x0) + ROAD_W / 2}
             y={sy(world.height, y0 + world.block) + ROAD_W / 2}
             width={world.block * CELL - ROAD_W}
@@ -59,6 +70,9 @@ export function CityGrid({
           />
         )),
       )}
+
+      {/* layer 2: flat place ground fills (park lawn / building plot) */}
+      <FootprintFills world={world} />
 
       {/* roads */}
       {avenues.map((x) => (
@@ -90,6 +104,9 @@ export function CityGrid({
           transform={`rotate(${c.angle} ${c.x} ${c.y})`}
         />
       ))}
+
+      {/* layer 4: z-sorted vector buildings (houses, parks, library/civic massings) */}
+      <Buildings world={world} />
 
       {/* construction barriers across the road */}
       {barriers.map((b, i) => (

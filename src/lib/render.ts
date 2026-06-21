@@ -228,3 +228,12 @@ export function cellHash(x: number, y: number): number {
   const h = ((Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0);
   return h / 4294967296;
 }
+
+// viewBox string with a top margin widened by maxBuildingHeight so the tallest
+// roofs never clip; the bottom/sides keep the existing PAD.
+export function cityViewBox(w: World, pad: number): string {
+  const netW = (w.width - 1) * CELL;
+  const netH = (w.height - 1) * CELL;
+  const maxBH = maxBuildingHeight(w);
+  return `${-pad} ${-(pad + maxBH)} ${netW + pad * 2} ${netH + pad * 2 + maxBH}`;
+}

@@ -187,3 +187,11 @@ describe('cellHash', () => {
     expect(v).toBeLessThan(1);
   });
 });
+
+import { cityViewBox } from '@/lib/render';
+
+describe('cityViewBox', () => {
+  it('widens the top margin by maxBuildingHeight', () => {
+    expect(cityViewBox(CITY, CELL)).toBe('-14 -126 1428 980');
+  });
+});
