@@ -177,44 +177,78 @@ function Massing({ place, world }: { place: Place; world: World }) {
   );
 }
 
-// The library: a UCSD Geisel-style Brutalist tower — splayed concrete legs supporting
-// cantilevered floors that widen as they rise, with recessed dark-glass window bands.
+// A pointed (lancet) Gothic window.
+function lancet(x: number, w: number, bottom: number, h: number, key: string) {
+  const archH = w * 0.6;
+  const shaftH = Math.max(0, h - archH);
+  const topY = bottom - shaftH;
+  return (
+    <g key={key}>
+      <rect className="glass" x={x} y={topY} width={w} height={shaftH} />
+      <polygon className="glass" points={`${x},${topY} ${x + w},${topY} ${x + w / 2},${topY - archH}`} />
+    </g>
+  );
+}
+
+// A crenellated (battlement) parapet along [x, x+wd]: merlons of height h sitting on edge y.
+function battlements(x: number, wd: number, y: number, h: number, key: string) {
+  const n = Math.max(2, Math.round(wd / (CELL * 0.55)));
+  const mw = wd / (n * 2 - 1);
+  return (
+    <g key={key}>
+      {Array.from({ length: n }).map((_, i) => (
+        <rect key={i} className="sand" x={x + i * 2 * mw} y={y - h} width={mw} height={h} />
+      ))}
+    </g>
+  );
+}
+
+// The library: an Oxford Bodleian-style building — honey sandstone, a central tower with stacked
+// tiers (echoing the Tower of the Five Orders), Gothic lancet windows, and a battlemented roofline.
 function Library({ place, world }: { place: Place; world: World }) {
   const r = placeRect(world, place.footprint);
   const cx = r.x + r.width / 2;
   const baseY = r.y + r.height; // front (south) edge
-  const T = Math.min(CELL * 7.4, maxBuildingHeight(world)); // capped total height
-  const fullW = r.width * 0.76;          // widest (upper) floors
-  const legH = T * 0.2;
-  const podiumTop = baseY - legH;
-  const widths = [0.5, 0.6, 0.82, 0.96].map((f) => fullW * f); // narrow base -> wide top (cantilever)
-  const floorH = (T - legH) / widths.length;
+  const T = Math.min(CELL * 7.2, maxBuildingHeight(world)); // total height incl. finial
+  const fullW = r.width * 0.84;
+  const towerW = fullW * 0.32;
+  const wingW = (fullW - towerW) / 2;
+  const left = cx - fullW / 2;
+  const towerLeft = cx - towerW / 2;
+  const towerRight = cx + towerW / 2;
+  const wingH = T * 0.56;
+  const wingTop = baseY - wingH;
+  const towerBodyTop = baseY - T * 0.84;
+  const bodyH = baseY - towerBodyTop;
+  const crenH = CELL * 0.26;
+  const sh = CELL * 0.12; // right-edge shading width
   return (
     <g className="massing library">
-      <ellipse className="bshadow" cx={cx} cy={baseY + 2} rx={fullW * 0.58} ry={CELL * 0.22} />
-      {/* splayed concrete legs (wider at the base) */}
-      {[-1, 0, 1].map((s, k) => {
-        const lw = CELL * 0.5;
-        const botX = cx + s * widths[0] * 0.42;
-        const topX = cx + s * widths[0] * 0.24;
-        return (
-          <polygon key={`lg${k}`} className="stone-side" points={`${botX - lw / 2},${baseY} ${botX + lw / 2},${baseY} ${topX + lw / 2},${podiumTop} ${topX - lw / 2},${podiumTop}`} />
-        );
-      })}
-      {/* cantilevered floors (bottom -> top, widening): a recessed glass band capped by an overhanging slab */}
-      {widths.map((w, i) => {
-        const yt = podiumTop - (i + 1) * floorH; // floor top
-        const glassH = floorH * 0.64;
-        const slabH = floorH - glassH;
-        return (
-          <g key={`fl${i}`}>
-            <rect className="glass" x={cx - (w * 0.86) / 2} y={yt + slabH} width={w * 0.86} height={glassH} />
-            <rect className="stone-body" x={cx - w / 2} y={yt} width={w} height={slabH} />
-          </g>
-        );
-      })}
-      {/* parapet cap */}
-      <rect className="stone-step" x={cx - widths[widths.length - 1] / 2} y={podiumTop - widths.length * floorH - CELL * 0.2} width={widths[widths.length - 1]} height={CELL * 0.24} />
+      <ellipse className="bshadow" cx={cx} cy={baseY + 2} rx={fullW * 0.56} ry={CELL * 0.22} />
+      {/* plinth */}
+      <rect className="sand-dark" x={left - CELL * 0.3} y={baseY - CELL * 0.42} width={fullW + CELL * 0.6} height={CELL * 0.42} />
+      {/* wings + central tower (honey sandstone) */}
+      <rect className="sand" x={left} y={wingTop} width={wingW} height={wingH} />
+      <rect className="sand" x={towerRight} y={wingTop} width={wingW} height={wingH} />
+      <rect className="sand" x={towerLeft} y={towerBodyTop} width={towerW} height={bodyH} />
+      {/* subtle right-edge shading for depth */}
+      <rect className="sand-dark" x={left + wingW - sh} y={wingTop} width={sh} height={wingH} />
+      <rect className="sand-dark" x={towerRight + wingW - sh} y={wingTop} width={sh} height={wingH} />
+      <rect className="sand-dark" x={towerRight - sh} y={towerBodyTop} width={sh} height={bodyH} />
+      {/* tower string-courses (the stacked tiers) */}
+      {[0.32, 0.54, 0.76].map((f, i) => (
+        <rect key={`sc${i}`} className="sand-dark" x={towerLeft} y={baseY - bodyH * f} width={towerW} height={CELL * 0.13} />
+      ))}
+      {/* Gothic lancet windows */}
+      {lancet(cx - towerW * 0.22, towerW * 0.44, baseY - bodyH * 0.12, bodyH * 0.3, 'tw')}
+      {[0, 1].map((i) => lancet(left + wingW * (0.22 + i * 0.4), wingW * 0.22, baseY - wingH * 0.16, wingH * 0.56, `lw${i}`))}
+      {[0, 1].map((i) => lancet(towerRight + wingW * (0.22 + i * 0.4), wingW * 0.22, baseY - wingH * 0.16, wingH * 0.56, `rw${i}`))}
+      {/* battlemented rooflines */}
+      {battlements(left, wingW, wingTop, crenH, 'bl')}
+      {battlements(towerRight, wingW, wingTop, crenH, 'br')}
+      {battlements(towerLeft, towerW, towerBodyTop, crenH, 'bt')}
+      {/* central pinnacle / finial */}
+      <polygon className="sand" points={`${cx - CELL * 0.24},${towerBodyTop - crenH} ${cx + CELL * 0.24},${towerBodyTop - crenH} ${cx},${baseY - T}`} />
     </g>
   );
 }

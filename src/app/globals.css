@@ -40,6 +40,8 @@
   --stone-side: #726d60;
   --foliage-lite: #74c47b;
   --glass: #34454f;
+  --sand: #c9b27e;
+  --sand-dark: #a08a59;
 }
 
 * {
@@ -222,6 +224,8 @@ main {
 .buildings .stone-side { fill: var(--stone-side); }
 .buildings .canopy-lite { fill: var(--foliage-lite); }
 .buildings .glass { fill: var(--glass); }
+.buildings .sand { fill: var(--sand); }
+.buildings .sand-dark { fill: var(--sand-dark); }
 
 .road {
   stroke: #3a352a;
@@ -475,7 +479,7 @@ main {
 }
 .sw.house { background: var(--wall); border: 1px solid var(--wall-side); }
 .sw.park { background: var(--foliage); border: 1px solid var(--foliage-dark); }
-.sw.library { background: var(--stone); border: 1px solid var(--stone-dark); }
+.sw.library { background: var(--sand); border: 1px solid var(--sand-dark); }
 .sw.civic { background: var(--stone-dark); border: 1px solid var(--stone-dark); }
 .sw.constr {
   background: repeating-linear-gradient(45deg, var(--red) 0 3px, #1a1610 3px 6px);
