@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { World, Scenario, Instruction } from '@/lib/types';
 import { execute } from '@/lib/executor';
 import { judge, judgeLegs } from '@/lib/verdict';
-import { isTraversable } from '@/lib/world';
+import { isTraversable, inBounds } from '@/lib/world';
 import { parseText, parseJson, instructionsToText } from '@/lib/isa';
 import { useDirectionsPoll } from '@/hooks/useDirectionsPoll';
 import { usePlayer } from '@/hooks/usePlayer';
@@ -16,13 +16,23 @@ import { Transport } from '@/components/Transport';
 import { Status } from '@/components/Status';
 import { Legend } from '@/components/Legend';
 import { Editor } from '@/components/Editor';
-import worldData from '@/data/worlds/downtown.json';
+import { validateTerrain } from '@/lib/terrain';
+import worldDefault from '@/data/worlds/downtown.terrain.json';
 import sweepRaw from '@/data/samples/sweep.json';
 import detourRaw from '@/data/samples/detour.json';
 import loopRaw from '@/data/samples/loop.json';
 
-const WORLD = worldData as World;
 const SAMPLES: Record<string, unknown> = { sweep: sweepRaw, detour: detourRaw, loop: loopRaw };
+
+// Stale-scenario safety: if a committed scenario references any cell outside the
+// loaded world, drop it (grade nothing) rather than FAIL against a non-existent cell.
+export function scenarioForWorld(world: World, sc: Scenario | null): Scenario | null {
+  if (!sc) return null;
+  const ok = (c: [number, number]) => inBounds(world, c[0], c[1]);
+  if (sc.expected && !ok(sc.expected.cell)) return null;
+  if (sc.expected_legs && !sc.expected_legs.every((l) => ok(l.cell))) return null;
+  return sc;
+}
 
 function toEditable(raw: unknown): { text: string; scenario: Scenario | null } {
   const { instructions } = parseJson(raw);
@@ -48,7 +58,10 @@ export default function RuntimeView() {
     scenario: initial.scenario,
     runId: 0,
   }));
+  const [world, setWorld] = useState<World>(worldDefault as World);
+  const [terrainStatus, setTerrainStatus] = useState<{ ok: boolean; msg: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const mapRef = useRef<HTMLInputElement>(null);
 
   const parsed = useMemo(() => parseText(text), [text]);
   const ok = parsed.diagnostics.length === 0;
@@ -74,25 +87,29 @@ export default function RuntimeView() {
 
   const start =
     committed.scenario?.start &&
-    isTraversable(WORLD, committed.scenario.start.cell[0], committed.scenario.start.cell[1])
+    isTraversable(world, committed.scenario.start.cell[0], committed.scenario.start.cell[1])
       ? committed.scenario.start
-      : WORLD.start;
+      : world.start;
 
-  const result = useMemo(() => execute(WORLD, start, { instructions: committed.instructions }), [committed, start]);
+  const result = useMemo(
+    () => execute(world, start, { instructions: committed.instructions }),
+    [committed, start, world],
+  );
+  const safeScenario = useMemo(() => scenarioForWorld(world, committed.scenario), [world, committed]);
   const verdict = useMemo(
     () =>
-      committed.scenario?.expected_legs
-        ? judgeLegs(result, committed.scenario.expected_legs)
-        : judge(result, committed.scenario?.expected),
-    [result, committed],
+      safeScenario?.expected_legs
+        ? judgeLegs(result, safeScenario.expected_legs)
+        : judge(result, safeScenario?.expected),
+    [result, safeScenario],
   );
 
   const hasProgram = committed.instructions.length > 0;
   const player = usePlayer(result.frames, { autoPlay: hasProgram });
   const activeLine = result.frames[player.index]?.line ?? null;
 
-  const legs = committed.scenario?.expected_legs;
-  const goal = !hasProgram ? null : legs ? legs[legs.length - 1].cell : committed.scenario?.expected?.cell ?? null;
+  const legs = safeScenario?.expected_legs;
+  const goal = !hasProgram ? null : legs ? legs[legs.length - 1].cell : safeScenario?.expected?.cell ?? null;
   const waypoints = hasProgram && legs ? legs.slice(0, -1).map((l) => l.cell) : [];
 
   // Emptying the editor resets the stage to the neutral resting state (spec §7.5):
@@ -168,6 +185,33 @@ export default function RuntimeView() {
     }
   };
 
+  const onLoadMap = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const raw = await file.text();
+    e.target.value = '';
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      setTerrainStatus({ ok: false, msg: 'That file is not valid JSON.' });
+      return;
+    }
+    const res = validateTerrain(parsed);
+    if (!res.ok) {
+      setTerrainStatus({ ok: false, msg: res.error });
+      return;
+    }
+    // Success: swap the world and RESET the run.
+    setWorld(res.world);
+    setText('');
+    setScenario(null);
+    setSample('');
+    setFname('map.grid');
+    setCommitted((c) => ({ instructions: [], scenario: null, runId: c.runId + 1 }));
+    setTerrainStatus({ ok: true, msg: `Loaded ${res.world.width}×${res.world.height} map` });
+  };
+
   return (
     <>
       <Header />
@@ -175,16 +219,16 @@ export default function RuntimeView() {
         <section className="stage">
           <div className="stage-head">
             <div className="eyebrow tnum" style={{ marginLeft: 'auto' }}>
-              Grid {WORLD.width} × {WORLD.height}
+              Grid {world.width} × {world.height}
             </div>
           </div>
           <div className="stage-card">
-            <CityGrid world={WORLD} start={start.cell} goal={goal} waypoints={waypoints}>
-              <Trail frames={result.frames} index={player.index} worldHeight={WORLD.height} />
+            <CityGrid world={world} start={start.cell} goal={goal} waypoints={waypoints}>
+              <Trail frames={result.frames} index={player.index} worldHeight={world.height} />
               <Robot
                 cell={player.frame.cell}
                 facing={player.frame.facing}
-                worldHeight={WORLD.height}
+                worldHeight={world.height}
                 status={player.frame.status}
                 transitionMs={player.frameMs}
               />
@@ -233,8 +277,18 @@ export default function RuntimeView() {
             <button className="sbtn" onClick={onPasteJson}>
               ⎘ Paste JSON
             </button>
+            <button className="sbtn" onClick={() => mapRef.current?.click()}>
+              🗺 Load map
+            </button>
             <input ref={fileRef} type="file" accept=".json,.grid,.txt" hidden onChange={onUpload} />
+            <input ref={mapRef} type="file" accept=".terrain,.terrain.json,.json" hidden onChange={onLoadMap} />
           </div>
+          {terrainStatus && (
+            <div className={`terrain-status ${terrainStatus.ok ? 'ok' : 'err'}`} role="status">
+              <span className="ic">{terrainStatus.ok ? '✓' : '!'}</span>
+              <span>{terrainStatus.msg}</span>
+            </div>
+          )}
           <div className={`diag ${ok ? 'ok' : 'err'}`}>
             <span className="ic">{ok ? '✓' : '!'}</span>
             <div className="t">
